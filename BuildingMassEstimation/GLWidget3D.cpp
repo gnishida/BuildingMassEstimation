@@ -462,6 +462,7 @@ void GLWidget3D::generateTrainingData(int image_width, int image_height) {
 		cv::Mat mat = cv::Mat(img.height(), img.width(), CV_8UC4, img.bits(), img.bytesPerLine()).clone();
 
 		// 画像を縮小
+		/*
 		if (image_width < 512) {
 			float scale = 512.0f / width();
 			cv::resize(mat, mat, cv::Size(width() * scale, height() * scale));
@@ -469,6 +470,7 @@ void GLWidget3D::generateTrainingData(int image_width, int image_height) {
 		}
 		cv::resize(mat, mat, cv::Size(image_width, image_height));
 		cv::threshold(mat, mat, 250, 255, CV_THRESH_BINARY);
+		*/
 
 		// set filename
 		QString filename = resultDir + "/" + QString("image_%1.png").arg(count, 6, 10, QChar('0'));
@@ -506,7 +508,7 @@ void GLWidget3D::runMCMC() {
 	cga::parseGrammar("../cga/building_mass.xml", grammar);
 
 	mcmc::MCMC mcmc(input, this, grammar);
-	mcmc.run(100000);
+	mcmc.run(1000);
 }
 
 void GLWidget3D::keyPressEvent(QKeyEvent *e) {

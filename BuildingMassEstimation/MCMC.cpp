@@ -67,9 +67,15 @@ namespace mcmc {
 		this->glWidget = glWidget;
 		this->orig_grammar = grammar;
 
-		// compute a distance map
+		// resize 1/4
 		cv::Mat grayImage;
 		cv::cvtColor(target, grayImage, CV_RGB2GRAY);
+		cv::resize(grayImage, grayImage, cv::Size(grayImage.cols * 0.5, grayImage.rows * 0.5));
+		cv::threshold(grayImage, grayImage, 250, 255, CV_THRESH_BINARY);
+		cv::resize(grayImage, grayImage, cv::Size(grayImage.cols * 0.5, grayImage.rows * 0.5));
+		cv::threshold(grayImage, grayImage, 250, 255, CV_THRESH_BINARY);
+
+		// compute a distance map
 		cv::distanceTransform(grayImage, targetDistMap, CV_DIST_L2, 3);
 
 		////////////////////////////////////////////// DEBUG //////////////////////////////////////////////
