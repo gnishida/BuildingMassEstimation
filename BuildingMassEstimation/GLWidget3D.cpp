@@ -415,7 +415,7 @@ void GLWidget3D::generateTrainingData(int image_width, int image_height) {
 	QTextStream out(&file);
 
 	cga::Grammar grammar;
-	cga::parseGrammar("../cga/building_mass.xml", grammar);
+	cga::parseGrammar("../cga/building_mass1.xml", grammar);
 
 	cga::CGA cga;
 	cga.modelMat = glm::rotate(glm::mat4(), -3.1415926f * 0.5f, glm::vec3(1, 0, 0));
@@ -502,13 +502,13 @@ void GLWidget3D::runMCMC() {
 	camera.pos = glm::vec3(0, 7.5, 40);
 	camera.updateMVPMatrix();
 
-	cv::Mat input = cv::imread("user_input.png");
+	QImage input("user_input1.png");
 
 	cga::Grammar grammar;
-	cga::parseGrammar("../cga/building_mass.xml", grammar);
+	cga::parseGrammar("../cga/building_mass1.xml", grammar);
 
 	mcmc::MCMC mcmc(input, this, grammar);
-	mcmc.run(1000);
+	mcmc.run(100);
 }
 
 void GLWidget3D::keyPressEvent(QKeyEvent *e) {

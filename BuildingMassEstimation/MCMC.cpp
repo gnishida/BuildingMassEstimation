@@ -62,14 +62,15 @@ namespace mcmc {
 	}
 
 
-	MCMC::MCMC(const cv::Mat& target, GLWidget3D* glWidget, cga::Grammar grammar) {
+	MCMC::MCMC(const QImage& target, GLWidget3D* glWidget, cga::Grammar grammar) {
 		this->target = target;
 		this->glWidget = glWidget;
 		this->orig_grammar = grammar;
 
+		cv::Mat grayImage = cv::Mat(this->target.height(), this->target.width(), CV_8UC4, this->target.bits(), this->target.bytesPerLine()).clone();
+
 		// resize 1/4
-		cv::Mat grayImage;
-		cv::cvtColor(target, grayImage, CV_RGB2GRAY);
+		cv::cvtColor(grayImage, grayImage, CV_RGB2GRAY);
 		cv::resize(grayImage, grayImage, cv::Size(grayImage.cols * 0.5, grayImage.rows * 0.5));
 		cv::threshold(grayImage, grayImage, 250, 255, CV_THRESH_BINARY);
 		cv::resize(grayImage, grayImage, cv::Size(grayImage.cols * 0.5, grayImage.rows * 0.5));
@@ -95,7 +96,6 @@ namespace mcmc {
 
 		time_t start = clock();
 
-		cga::Grammar current_grammar = orig_grammar;
 		float T = 1.0f;
 
 		QFile file("results_mcmc/result.txt");
@@ -109,23 +109,27 @@ namespace mcmc {
 		chain.best_E = chain.E;
 
 		for (int iter = 0; iter < maxIterations; ++iter) {
-			cga::Grammar next_grammar = current_grammar;
-
-			// next_grammarのパラメータ値を変更する
 			chain.generateProposal();
 			chain.next_E = evaluate(render(chain.next_grammar));
 			chain.update();
 
-			if ((iter + 1) % 100 == 0) {
+			SGD(chain, 24, 4);
+
+			if ((iter + 1) % 1 == 0) {
 				float best_E;
 				QImage best_image;
 
+				QImage image = target;
+				QPainter painter(&image);
+				painter.setOpacity(0.8);
+
 				best_image = render(chain.best_grammar);
 				best_E = chain.best_E;
-				best_image = render(chain.best_grammar);
+
+				painter.drawImage(0, 0, best_image);
 
 				QString filename = QString("results_mcmc/result_%1.png").arg(iter + 1);
-				best_image.save(filename);
+				image.save(filename);
 
 				std::cout << "--------------------------------------------------------" << std::endl;
 				std::cout << "Iter: " << (iter + 1) << ", Best value: " << best_E << std::endl;
@@ -158,6 +162,68 @@ namespace mcmc {
 		render(chain.best_grammar);
 
 		std::cout << "Best value: " << best_E << std::endl;
+	}
+
+	/**
+	 *  現在のステートから、Stochastic gradient descentによる最適化
+	 */
+	void MCMC::SGD(Chain& chain, int maxIterations, int refineInterval) {
+		int resolution = 10;
+
+		for (int iter = 0; iter < maxIterations; ++iter) {
+			bool updated = false;
+
+			for (int param_index = 0; param_index < chain.grammar.attrs.size(); ++param_index) {
+				// next grammarの変更パラメータのiteratorを取得する
+				cga::Grammar next_grammar = chain.grammar;
+				auto param_it = next_grammar.attrs.begin();
+				for (int k = 0; k < param_index; ++k) {
+					param_it++;
+				}
+
+				// option 1
+				float range = param_it->second.range_end - param_it->second.range_start;
+				float unit = range / resolution;
+				int index = (std::stof(param_it->second.value) - param_it->second.range_start + 0.5f) / unit;
+				param_it->second.value = std::to_string(unit * std::min(resolution, index + 1) + param_it->second.range_start);
+				float next_E1 = evaluate(render(next_grammar));
+
+				// option 2
+				param_it->second.value = std::to_string(unit * std::max(0, index - 1) + param_it->second.range_start);
+				float next_E2 = evaluate(render(next_grammar));
+
+				if (next_E1 < chain.E && next_E1 < next_E2) {
+					param_it->second.value = std::to_string(unit * std::min(resolution, index + 1) + param_it->second.range_start);
+					chain.grammar = next_grammar;
+					chain.E = next_E1;
+					if (next_E1 < chain.best_E) {
+						chain.best_grammar = next_grammar;
+						chain.best_E = next_E1;
+					}
+					updated = true;
+				}
+				else if (next_E2 < chain.E && next_E2 < next_E1) {
+					param_it->second.value = std::to_string(unit * std::max(0, index - 1) + param_it->second.range_start);
+					chain.grammar = next_grammar;
+					chain.E = next_E2;
+					if (next_E2 < chain.best_E) {
+						chain.best_grammar = next_grammar;
+						chain.best_E = next_E2;
+					}
+					updated = true;
+				}
+				else {
+					// no update
+				}
+			}
+
+			// 更新がないなら、終了
+			if (!updated) break;
+
+			if ((iter + 1) % refineInterval == 0) {
+				resolution *= 2;
+			}
+		}
 	}
 
 	/**

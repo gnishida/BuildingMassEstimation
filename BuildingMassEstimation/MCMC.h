@@ -35,15 +35,16 @@ namespace mcmc {
 
 	class MCMC {
 	private:
-		cv::Mat target;
+		QImage target;
 		cv::Mat targetDistMap;
 		GLWidget3D* glWidget;
 		cga::Grammar orig_grammar;
 
 	public:
-		MCMC(const cv::Mat& target, GLWidget3D* glWidget, cga::Grammar grammar);
+		MCMC(const QImage& target, GLWidget3D* glWidget, cga::Grammar grammar);
 
 		void run(int maxIterations);
+		void SGD(Chain& chain, int maxIterations, int refineInterval);
 		void runPT(int maxIterations);
 		QImage render(cga::Grammar& gramamr);
 		float evaluate(QImage& image);
