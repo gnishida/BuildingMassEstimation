@@ -322,11 +322,34 @@ void GLWidget3D::render() {
 		glBindVertexArray(0);
 		glDepthFunc(GL_LEQUAL);
 	}
+	else if (renderManager.renderingMode == RenderManager::RENDERING_MODE_CONTOUR) {
+		glUseProgram(renderManager.programs["contour"]);
+
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		glClearColor(1, 1, 1, 1);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+		glDisable(GL_DEPTH_TEST);
+		glDepthFunc(GL_ALWAYS);
+
+		glUniform2f(glGetUniformLocation(renderManager.programs["contour"], "pixelSize"), 1.0f / this->width(), 1.0f / this->height());
+
+		glUniform1i(glGetUniformLocation(renderManager.programs["contour"], "depthTex"), 8);
+		glActiveTexture(GL_TEXTURE8);
+		glEnable(GL_TEXTURE_2D);
+		glBindTexture(GL_TEXTURE_2D, renderManager.fragDepthTex);
+
+		glBindVertexArray(renderManager.secondPassVAO);
+
+		glDrawArrays(GL_QUADS, 0, 4);
+		glBindVertexArray(0);
+		glDepthFunc(GL_LEQUAL);
+	}
 
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	// Blur
 
-	if (renderManager.renderingMode != RenderManager::RENDERING_MODE_LINE && renderManager.renderingMode != RenderManager::RENDERING_MODE_HATCHING) {
+	if (renderManager.renderingMode == RenderManager::RENDERING_MODE_BASIC || renderManager.renderingMode == RenderManager::RENDERING_MODE_SSAO) {
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		qglClearColor(QColor(0xFF, 0xFF, 0xFF));
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -381,7 +404,7 @@ void GLWidget3D::render() {
 	glActiveTexture(GL_TEXTURE0);
 }
 
-void GLWidget3D::generateTrainingData(int image_width, int image_height) {
+void GLWidget3D::generateTrainingData(const std::string& cga_filename, int image_width, int image_height) {
 	QString resultDir = "results/buildings/";
 
 	if (QDir(resultDir).exists()) {
@@ -390,8 +413,6 @@ void GLWidget3D::generateTrainingData(int image_width, int image_height) {
 	QDir().mkpath(resultDir);
 
 	srand(0);
-	renderManager.renderingMode = RenderManager::RENDERING_MODE_LINE;
-	//renderManager.renderingMode = RenderManager::RENDERING_MODE_BASIC;
 	renderManager.useShadow = false;
 
 	int origWidth = width();
@@ -415,7 +436,7 @@ void GLWidget3D::generateTrainingData(int image_width, int image_height) {
 	QTextStream out(&file);
 
 	cga::Grammar grammar;
-	cga::parseGrammar("../cga/building_mass1.xml", grammar);
+	cga::parseGrammar(cga_filename.c_str(), grammar);
 
 	cga::CGA cga;
 	cga.modelMat = glm::rotate(glm::mat4(), -3.1415926f * 0.5f, glm::vec3(1, 0, 0));
@@ -429,6 +450,7 @@ void GLWidget3D::generateTrainingData(int image_width, int image_height) {
 		glm::mat4 modelMat = glm::rotate(glm::mat4(), -(float)M_PI * 0.5f, glm::vec3(1, 0, 0));
 		std::vector<Vertex> vertices;
 
+		/*
 		grammar.attrs["x_0"].value = "-10";
 		grammar.attrs["y_0"].value = "-8";
 		grammar.attrs["width_0"].value = "8";
@@ -439,7 +461,7 @@ void GLWidget3D::generateTrainingData(int image_width, int image_height) {
 		grammar.attrs["width_1"].value = "17";
 		grammar.attrs["depth_1"].value = "23";
 		grammar.attrs["height_1"].value = "3";
-
+		*/
 		for (auto it = grammar.attrs.begin(); it != grammar.attrs.end(); ++it) {
 			param_values.push_back(std::stof(it->second.value));
 		}
@@ -494,7 +516,7 @@ void GLWidget3D::generateTrainingData(int image_width, int image_height) {
 	//resizeGL(origWidth, origHeight);
 }
 
-void GLWidget3D::runMCMC() {
+void GLWidget3D::runMCMC(const std::string& cga_filename, const std::string& target_filename) {
 	// fix camera view direction and position
 	camera.xrot = 0.0f;
 	camera.yrot = 30.0f;
@@ -502,13 +524,13 @@ void GLWidget3D::runMCMC() {
 	camera.pos = glm::vec3(0, 7.5, 40);
 	camera.updateMVPMatrix();
 
-	QImage input("user_input1.png");
+	QImage input(target_filename.c_str());
 
 	cga::Grammar grammar;
-	cga::parseGrammar("../cga/building_mass1.xml", grammar);
+	cga::parseGrammar(cga_filename.c_str(), grammar);
 
 	mcmc::MCMC mcmc(input, this, grammar);
-	mcmc.run(100);
+	mcmc.run(3000);
 }
 
 void GLWidget3D::keyPressEvent(QKeyEvent *e) {

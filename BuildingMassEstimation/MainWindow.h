@@ -16,8 +16,10 @@ public:
 	MainWindow(QWidget *parent = 0);
 
 public slots:
+	void onSaveImage();
 	void onGenerateTrainingData();
 	void onMCMC();
+	void onRenderingModeChanged();
 };
 
 #endif // MAINWINDOW_H

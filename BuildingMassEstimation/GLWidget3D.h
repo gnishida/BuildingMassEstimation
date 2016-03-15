@@ -21,8 +21,8 @@ public:
 
 	void drawScene();
 	void render();
-	void generateTrainingData(int image_width, int image_height);
-	void runMCMC();
+	void generateTrainingData(const std::string& cga_filename, int image_width, int image_height);
+	void runMCMC(const std::string& cga_filename, const std::string& target_filename);
 
 	void keyPressEvent(QKeyEvent* e);
 	void keyReleaseEvent(QKeyEvent* e);

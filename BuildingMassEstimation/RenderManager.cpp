@@ -108,6 +108,9 @@ void RenderManager::init(const std::string& vertex_file, const std::string& geom
 	// Line rendering
 	programs["line"] = shader.createProgram("../shaders/lc_vert_line.glsl", "../shaders/lc_frag_line.glsl");
 
+	// Contour rendering
+	programs["contour"] = shader.createProgram("../shaders/lc_vert_contour.glsl", "../shaders/lc_frag_contour.glsl");
+
 	// Shadow mapping
 	programs["shadow"] = shader.createProgram("../shaders/lc_vert_shadow.glsl", "../shaders/lc_frag_shadow.glsl");
 

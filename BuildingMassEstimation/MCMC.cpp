@@ -170,59 +170,62 @@ namespace mcmc {
 	void MCMC::SGD(Chain& chain, int maxIterations, int refineInterval) {
 		int resolution = 10;
 
-		for (int iter = 0; iter < maxIterations; ++iter) {
-			bool updated = false;
+		int N = maxIterations / refineInterval + 1;
+		int count = 0;
+		for (int iter = 0; iter < N; ++iter) {
+			for (int iter2 = 0; iter2 < refineInterval && count < maxIterations; ++iter2, ++count) {
+				bool updated = false;
 
-			for (int param_index = 0; param_index < chain.grammar.attrs.size(); ++param_index) {
-				// next grammarの変更パラメータのiteratorを取得する
-				cga::Grammar next_grammar = chain.grammar;
-				auto param_it = next_grammar.attrs.begin();
-				for (int k = 0; k < param_index; ++k) {
-					param_it++;
-				}
+				for (int param_index = 0; param_index < chain.grammar.attrs.size(); ++param_index) {
+					// next grammarの変更パラメータのiteratorを取得する
+					cga::Grammar next_grammar = chain.grammar;
+					auto param_it = next_grammar.attrs.begin();
+					for (int k = 0; k < param_index; ++k) {
+						param_it++;
+					}
 
-				// option 1
-				float range = param_it->second.range_end - param_it->second.range_start;
-				float unit = range / resolution;
-				int index = (std::stof(param_it->second.value) - param_it->second.range_start + 0.5f) / unit;
-				param_it->second.value = std::to_string(unit * std::min(resolution, index + 1) + param_it->second.range_start);
-				float next_E1 = evaluate(render(next_grammar));
-
-				// option 2
-				param_it->second.value = std::to_string(unit * std::max(0, index - 1) + param_it->second.range_start);
-				float next_E2 = evaluate(render(next_grammar));
-
-				if (next_E1 < chain.E && next_E1 < next_E2) {
+					// option 1
+					float range = param_it->second.range_end - param_it->second.range_start;
+					float unit = range / resolution;
+					int index = (std::stof(param_it->second.value) - param_it->second.range_start + 0.5f) / unit;
 					param_it->second.value = std::to_string(unit * std::min(resolution, index + 1) + param_it->second.range_start);
-					chain.grammar = next_grammar;
-					chain.E = next_E1;
-					if (next_E1 < chain.best_E) {
-						chain.best_grammar = next_grammar;
-						chain.best_E = next_E1;
-					}
-					updated = true;
-				}
-				else if (next_E2 < chain.E && next_E2 < next_E1) {
+					float next_E1 = evaluate(render(next_grammar));
+
+					// option 2
 					param_it->second.value = std::to_string(unit * std::max(0, index - 1) + param_it->second.range_start);
-					chain.grammar = next_grammar;
-					chain.E = next_E2;
-					if (next_E2 < chain.best_E) {
-						chain.best_grammar = next_grammar;
-						chain.best_E = next_E2;
+					float next_E2 = evaluate(render(next_grammar));
+
+					if (next_E1 < chain.E && next_E1 < next_E2) {
+						param_it->second.value = std::to_string(unit * std::min(resolution, index + 1) + param_it->second.range_start);
+						chain.grammar = next_grammar;
+						chain.E = next_E1;
+						if (next_E1 < chain.best_E) {
+							chain.best_grammar = next_grammar;
+							chain.best_E = next_E1;
+						}
+						updated = true;
 					}
-					updated = true;
+					else if (next_E2 < chain.E && next_E2 < next_E1) {
+						param_it->second.value = std::to_string(unit * std::max(0, index - 1) + param_it->second.range_start);
+						chain.grammar = next_grammar;
+						chain.E = next_E2;
+						if (next_E2 < chain.best_E) {
+							chain.best_grammar = next_grammar;
+							chain.best_E = next_E2;
+						}
+						updated = true;
+					}
+					else {
+						// no update
+					}
 				}
-				else {
-					// no update
-				}
+
+				// 更新がないなら、終了
+				if (!updated) break;
 			}
 
-			// 更新がないなら、終了
-			if (!updated) break;
-
-			if ((iter + 1) % refineInterval == 0) {
-				resolution *= 2;
-			}
+			// increase the resolution
+			resolution *= 2;
 		}
 	}
 
@@ -335,7 +338,6 @@ namespace mcmc {
 		cga.generateGeometry(faces);
 		glWidget->renderManager.removeObjects();
 		glWidget->renderManager.addFaces(faces);
-		glWidget->renderManager.renderingMode = RenderManager::RENDERING_MODE_LINE;
 		glWidget->render();
 		return glWidget->grabFrameBuffer();
 	}

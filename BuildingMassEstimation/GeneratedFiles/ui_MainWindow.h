@@ -29,10 +29,15 @@ public:
     QAction *actionExit;
     QAction *actionGenerateTrainingData;
     QAction *actionMCMC;
+    QAction *actionSaveImage;
+    QAction *actionRenderingBasic;
+    QAction *actionRenderingLine;
+    QAction *actionRenderingContour;
     QWidget *centralWidget;
     QMenuBar *menuBar;
     QMenu *menuFile;
     QMenu *menuTool;
+    QMenu *menuRendering;
     QToolBar *mainToolBar;
     QStatusBar *statusBar;
 
@@ -47,6 +52,17 @@ public:
         actionGenerateTrainingData->setObjectName(QStringLiteral("actionGenerateTrainingData"));
         actionMCMC = new QAction(MainWindowClass);
         actionMCMC->setObjectName(QStringLiteral("actionMCMC"));
+        actionSaveImage = new QAction(MainWindowClass);
+        actionSaveImage->setObjectName(QStringLiteral("actionSaveImage"));
+        actionRenderingBasic = new QAction(MainWindowClass);
+        actionRenderingBasic->setObjectName(QStringLiteral("actionRenderingBasic"));
+        actionRenderingBasic->setCheckable(true);
+        actionRenderingLine = new QAction(MainWindowClass);
+        actionRenderingLine->setObjectName(QStringLiteral("actionRenderingLine"));
+        actionRenderingLine->setCheckable(true);
+        actionRenderingContour = new QAction(MainWindowClass);
+        actionRenderingContour->setObjectName(QStringLiteral("actionRenderingContour"));
+        actionRenderingContour->setCheckable(true);
         centralWidget = new QWidget(MainWindowClass);
         centralWidget->setObjectName(QStringLiteral("centralWidget"));
         MainWindowClass->setCentralWidget(centralWidget);
@@ -57,6 +73,8 @@ public:
         menuFile->setObjectName(QStringLiteral("menuFile"));
         menuTool = new QMenu(menuBar);
         menuTool->setObjectName(QStringLiteral("menuTool"));
+        menuRendering = new QMenu(menuBar);
+        menuRendering->setObjectName(QStringLiteral("menuRendering"));
         MainWindowClass->setMenuBar(menuBar);
         mainToolBar = new QToolBar(MainWindowClass);
         mainToolBar->setObjectName(QStringLiteral("mainToolBar"));
@@ -67,9 +85,15 @@ public:
 
         menuBar->addAction(menuFile->menuAction());
         menuBar->addAction(menuTool->menuAction());
+        menuBar->addAction(menuRendering->menuAction());
+        menuFile->addAction(actionSaveImage);
+        menuFile->addSeparator();
         menuFile->addAction(actionExit);
         menuTool->addAction(actionGenerateTrainingData);
         menuTool->addAction(actionMCMC);
+        menuRendering->addAction(actionRenderingBasic);
+        menuRendering->addAction(actionRenderingLine);
+        menuRendering->addAction(actionRenderingContour);
 
         retranslateUi(MainWindowClass);
 
@@ -82,8 +106,13 @@ public:
         actionExit->setText(QApplication::translate("MainWindowClass", "Exit", 0));
         actionGenerateTrainingData->setText(QApplication::translate("MainWindowClass", "Generate Training Data", 0));
         actionMCMC->setText(QApplication::translate("MainWindowClass", "MCMC", 0));
+        actionSaveImage->setText(QApplication::translate("MainWindowClass", "Save Image", 0));
+        actionRenderingBasic->setText(QApplication::translate("MainWindowClass", "Basic", 0));
+        actionRenderingLine->setText(QApplication::translate("MainWindowClass", "Line", 0));
+        actionRenderingContour->setText(QApplication::translate("MainWindowClass", "Contour", 0));
         menuFile->setTitle(QApplication::translate("MainWindowClass", "File", 0));
         menuTool->setTitle(QApplication::translate("MainWindowClass", "Tool", 0));
+        menuRendering->setTitle(QApplication::translate("MainWindowClass", "Rendering", 0));
     } // retranslateUi
 
 };

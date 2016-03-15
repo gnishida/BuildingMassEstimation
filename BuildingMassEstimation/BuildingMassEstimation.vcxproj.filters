@@ -482,5 +482,11 @@
     <None Include="..\shaders\lc_vert_ssao.glsl">
       <Filter>Source Files\shader</Filter>
     </None>
+    <None Include="..\shaders\lc_frag_contour.glsl">
+      <Filter>Source Files\shader</Filter>
+    </None>
+    <None Include="..\shaders\lc_vert_contour.glsl">
+      <Filter>Source Files\shader</Filter>
+    </None>
   </ItemGroup>
 </Project>
