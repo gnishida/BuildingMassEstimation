@@ -68,7 +68,7 @@ namespace mcmc {
 		this->orig_grammar = grammar;
 
 		cv::Mat grayImage = cv::Mat(this->target.height(), this->target.width(), CV_8UC4, this->target.bits(), this->target.bytesPerLine()).clone();
-
+		int c = grayImage.channels();
 		// resize 1/4
 		cv::cvtColor(grayImage, grayImage, CV_RGB2GRAY);
 		cv::resize(grayImage, grayImage, cv::Size(grayImage.cols * 0.5, grayImage.rows * 0.5));
@@ -337,8 +337,9 @@ namespace mcmc {
 		std::vector<boost::shared_ptr<glutils::Face> > faces;
 		cga.generateGeometry(faces);
 		glWidget->renderManager.removeObjects();
-		glWidget->renderManager.addFaces(faces);
+		glWidget->renderManager.addFaces(faces, false);
 		glWidget->render();
+
 		return glWidget->grabFrameBuffer();
 	}
 

@@ -19,10 +19,14 @@ class GLWidget3D : public QGLWidget {
 public:
 	GLWidget3D(MainWindow *parent = 0);
 
+	void updateStatusBar();
 	void drawScene();
 	void render();
-	void generateTrainingData(const std::string& cga_filename, int image_width, int image_height);
-	void runMCMC(const std::string& cga_filename, const std::string& target_filename);
+	void loadCGA(const std::string& cga_filename);
+	void generateTrainingData(int image_width, int image_height);
+	void runMCMC(const std::string& cga_filename, const std::string& target_filename, int numIterations);
+	void runMCMCAll(const std::string& cga_dir, int numIterations);
+	void fixCamera();
 
 	void keyPressEvent(QKeyEvent* e);
 	void keyReleaseEvent(QKeyEvent* e);

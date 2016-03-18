@@ -1,5 +1,6 @@
 #include "MainWindow.h"
 #include <QFileDialog>
+#include "MCMCConfigDialog.h"
 
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
 	ui.setupUi(this);
@@ -10,16 +11,26 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
 	groupRenderingMode->addAction(ui.actionRenderingLine);
 	groupRenderingMode->addAction(ui.actionRenderingContour);
 
+	connect(ui.actionLoadCGA, SIGNAL(triggered()), this, SLOT(onLoadCGA()));
 	connect(ui.actionSaveImage, SIGNAL(triggered()), this, SLOT(onSaveImage()));
+	connect(ui.actionResetCamera, SIGNAL(triggered()), this, SLOT(onResetCamera()));
 	connect(ui.actionExit, SIGNAL(triggered()), this, SLOT(close()));
 	connect(ui.actionGenerateTrainingData, SIGNAL(triggered()), this, SLOT(onGenerateTrainingData()));
 	connect(ui.actionMCMC, SIGNAL(triggered()), this, SLOT(onMCMC()));
+	connect(ui.actionMCMCAll, SIGNAL(triggered()), this, SLOT(onMCMCAll()));
 	connect(ui.actionRenderingBasic, SIGNAL(triggered()), this, SLOT(onRenderingModeChanged()));
 	connect(ui.actionRenderingLine, SIGNAL(triggered()), this, SLOT(onRenderingModeChanged()));
 	connect(ui.actionRenderingContour, SIGNAL(triggered()), this, SLOT(onRenderingModeChanged()));
 
-	glWidget3D = new GLWidget3D();
+	glWidget3D = new GLWidget3D(this);
 	this->setCentralWidget(glWidget3D);
+}
+
+void MainWindow::onLoadCGA() {
+	QString filename = QFileDialog::getOpenFileName(this, tr("Load CGA file..."), "", tr("CGA Files (*.xml)"));
+	if (filename.isEmpty()) return;
+
+	glWidget3D->loadCGA(filename.toUtf8().constData());
 }
 
 void MainWindow::onSaveImage() {
@@ -29,21 +40,27 @@ void MainWindow::onSaveImage() {
 	glWidget3D->grabFrameBuffer().save(filename.toUtf8().constData());
 }
 
-void MainWindow::onGenerateTrainingData() {
-	QString filename = QFileDialog::getOpenFileName(this, tr("Open CGA file..."), "", tr("CGA Files (*.xml)"));
-	if (filename.isEmpty()) return;
+void MainWindow::onResetCamera() {
+	glWidget3D->fixCamera();
+	glWidget3D->updateGL();
+}
 
-	glWidget3D->generateTrainingData(filename.toUtf8().constData(), 256, 200);
+void MainWindow::onGenerateTrainingData() {
+	glWidget3D->generateTrainingData(256, 200);
 }
 
 void MainWindow::onMCMC() {
-	QString cga_filename = QFileDialog::getOpenFileName(this, tr("Open CGA file..."), "", tr("CGA Files (*.xml)"));
-	if (cga_filename.isEmpty()) return;
+	MCMCConfigDialog dlg;
+	if (dlg.exec() && !dlg.ui.lineEditCGAFilename->text().isEmpty() && !dlg.ui.lineEditTargetFilename->text().isEmpty()) {
+		glWidget3D->runMCMC(dlg.ui.lineEditCGAFilename->text().toUtf8().constData(), dlg.ui.lineEditTargetFilename->text().toUtf8().constData(), dlg.ui.lineEditIterations->text().toInt());
+	}
+}
 
-	QString target_filename = QFileDialog::getOpenFileName(this, tr("Open image file..."), "", tr("Image Files (*.png)"));
-	if (target_filename.isEmpty()) return;
+void MainWindow::onMCMCAll() {
+	QString dir = QFileDialog::getExistingDirectory(this, tr("Open Directory"),	".", QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
+	if (dir.isEmpty()) return;
 
-	glWidget3D->runMCMC(cga_filename.toUtf8().constData(), target_filename.toUtf8().constData());
+	glWidget3D->runMCMCAll(dir.toUtf8().constData(), 300);
 }
 
 void MainWindow::onRenderingModeChanged() {

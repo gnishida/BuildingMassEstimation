@@ -8,7 +8,7 @@
 class MainWindow : public QMainWindow {
 	Q_OBJECT
 
-private:
+public:
 	Ui::MainWindowClass ui;
 	GLWidget3D* glWidget3D;
 
@@ -16,9 +16,12 @@ public:
 	MainWindow(QWidget *parent = 0);
 
 public slots:
+	void onLoadCGA();
 	void onSaveImage();
+	void onResetCamera();
 	void onGenerateTrainingData();
 	void onMCMC();
+	void onMCMCAll();
 	void onRenderingModeChanged();
 };
 

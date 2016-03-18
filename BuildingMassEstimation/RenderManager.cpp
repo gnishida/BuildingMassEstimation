@@ -348,9 +348,9 @@ void RenderManager::resizeSsaoKernel() {
 }//
 
 
-void RenderManager::addFaces(const std::vector<boost::shared_ptr<glutils::Face> >& faces) {
+void RenderManager::addFaces(const std::vector<boost::shared_ptr<glutils::Face> >& faces, bool lighting) {
 	for (int i = 0; i < faces.size(); ++i) {
-		addObject(faces[i]->name.c_str(), faces[i]->texture.c_str(), faces[i]->vertices, true);
+		addObject(faces[i]->name.c_str(), faces[i]->texture.c_str(), faces[i]->vertices, lighting);
 	}
 }
 

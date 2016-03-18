@@ -75,7 +75,7 @@ public:
 	void resize(int width,int height);
 	void resizeSsaoKernel();
 
-	void addFaces(const std::vector<boost::shared_ptr<glutils::Face> >& faces);
+	void addFaces(const std::vector<boost::shared_ptr<glutils::Face> >& faces, bool lighting);
 	void addObject(const QString& object_name, const QString& texture_file, const std::vector<Vertex>& vertices, bool lighting);
 	void removeObjects();
 	void removeObject(const QString& object_name);
