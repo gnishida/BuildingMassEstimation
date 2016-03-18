@@ -51,7 +51,7 @@ public:
 	bool shiftPressed;
 
 	RenderManager renderManager;
-
+	QImage bgImage;
 
 };
 

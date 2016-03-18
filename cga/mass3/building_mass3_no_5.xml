@@ -5,17 +5,17 @@
 	<attr name="y_0" value="-4" range="-15,10"/>
 	<attr name="width_0" value="8" range="5,20"/>
 	<attr name="depth_0" value="8" range="5,20"/>
-	<attr name="height_0" value="24" range="3,25"/>
+	<attr name="height_0" value="6" range="3,15"/>
 	<attr name="x_1" value="-4" range="-15,10"/>
 	<attr name="y_1" value="-4" range="-15,10"/>
 	<attr name="width_1" value="8" range="5,20"/>
 	<attr name="depth_1" value="8" range="5,20"/>
-	<attr name="height_1" value="12" range="3,25"/>
+	<attr name="height_1" value="3" range="3,15"/>
 	<attr name="x_2" value="4" range="-15,10"/>
 	<attr name="y_2" value="-12" range="-15,10"/>
 	<attr name="width_2" value="8" range="5,20"/>
 	<attr name="depth_2" value="16" range="5,20"/>
-	<attr name="height_2" value="24" range="3,25"/>
+	<attr name="height_2" value="6" range="3,15"/>
 
 	<!-- building mass -->
 	<rule name="Start">

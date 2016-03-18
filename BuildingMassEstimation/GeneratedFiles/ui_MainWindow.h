@@ -36,6 +36,7 @@ public:
     QAction *actionLoadCGA;
     QAction *actionResetCamera;
     QAction *actionMCMCAll;
+    QAction *actionLoadImage;
     QWidget *centralWidget;
     QMenuBar *menuBar;
     QMenu *menuFile;
@@ -72,6 +73,8 @@ public:
         actionResetCamera->setObjectName(QStringLiteral("actionResetCamera"));
         actionMCMCAll = new QAction(MainWindowClass);
         actionMCMCAll->setObjectName(QStringLiteral("actionMCMCAll"));
+        actionLoadImage = new QAction(MainWindowClass);
+        actionLoadImage->setObjectName(QStringLiteral("actionLoadImage"));
         centralWidget = new QWidget(MainWindowClass);
         centralWidget->setObjectName(QStringLiteral("centralWidget"));
         MainWindowClass->setCentralWidget(centralWidget);
@@ -96,6 +99,7 @@ public:
         menuBar->addAction(menuTool->menuAction());
         menuBar->addAction(menuRendering->menuAction());
         menuFile->addAction(actionLoadCGA);
+        menuFile->addAction(actionLoadImage);
         menuFile->addAction(actionSaveImage);
         menuFile->addSeparator();
         menuFile->addAction(actionResetCamera);
@@ -128,6 +132,7 @@ public:
         actionLoadCGA->setShortcut(QApplication::translate("MainWindowClass", "Ctrl+O", 0));
         actionResetCamera->setText(QApplication::translate("MainWindowClass", "Reset Camera", 0));
         actionMCMCAll->setText(QApplication::translate("MainWindowClass", "MCMC All", 0));
+        actionLoadImage->setText(QApplication::translate("MainWindowClass", "Load Image", 0));
         menuFile->setTitle(QApplication::translate("MainWindowClass", "File", 0));
         menuTool->setTitle(QApplication::translate("MainWindowClass", "Tool", 0));
         menuRendering->setTitle(QApplication::translate("MainWindowClass", "Rendering", 0));

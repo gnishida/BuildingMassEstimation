@@ -17,6 +17,7 @@ public:
 
 public slots:
 	void onLoadCGA();
+	void onLoadImage();
 	void onSaveImage();
 	void onResetCamera();
 	void onGenerateTrainingData();

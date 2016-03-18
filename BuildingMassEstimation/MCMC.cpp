@@ -29,6 +29,7 @@ namespace mcmc {
 		for (auto it = next_grammar.attrs.begin(); it != next_grammar.attrs.end(); ++it) {
 			float range = it->second.range_end - it->second.range_start;
 			float unit = range / 9.0f;
+			//int index = std::min(9.0f, (std::stof(it->second.value) - it->second.range_start) / unit + 0.5f);
 			int index = (std::stof(it->second.value) - it->second.range_start) / unit;
 			int r = rand() % 3;
 
@@ -187,7 +188,8 @@ namespace mcmc {
 					// option 1
 					float range = param_it->second.range_end - param_it->second.range_start;
 					float unit = range / resolution;
-					int index = (std::stof(param_it->second.value) - param_it->second.range_start + 0.5f) / unit;
+					//int index = std::min(9.0f, (std::stof(param_it->second.value) - param_it->second.range_start) / unit + 0.5f);
+					int index = (std::stof(param_it->second.value) - param_it->second.range_start + 0.5) / unit;
 					param_it->second.value = std::to_string(unit * std::min(resolution, index + 1) + param_it->second.range_start);
 					float next_E1 = evaluate(render(next_grammar));
 

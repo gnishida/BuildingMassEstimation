@@ -28,6 +28,7 @@
      <string>File</string>
     </property>
     <addaction name="actionLoadCGA"/>
+    <addaction name="actionLoadImage"/>
     <addaction name="actionSaveImage"/>
     <addaction name="separator"/>
     <addaction name="actionResetCamera"/>
@@ -126,6 +127,11 @@
   <action name="actionMCMCAll">
    <property name="text">
     <string>MCMC All</string>
+   </property>
+  </action>
+  <action name="actionLoadImage">
+   <property name="text">
+    <string>Load Image</string>
    </property>
   </action>
  </widget>

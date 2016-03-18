@@ -12,6 +12,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
 	groupRenderingMode->addAction(ui.actionRenderingContour);
 
 	connect(ui.actionLoadCGA, SIGNAL(triggered()), this, SLOT(onLoadCGA()));
+	connect(ui.actionLoadImage, SIGNAL(triggered()), this, SLOT(onLoadImage()));
 	connect(ui.actionSaveImage, SIGNAL(triggered()), this, SLOT(onSaveImage()));
 	connect(ui.actionResetCamera, SIGNAL(triggered()), this, SLOT(onResetCamera()));
 	connect(ui.actionExit, SIGNAL(triggered()), this, SLOT(close()));
@@ -31,6 +32,13 @@ void MainWindow::onLoadCGA() {
 	if (filename.isEmpty()) return;
 
 	glWidget3D->loadCGA(filename.toUtf8().constData());
+}
+
+void MainWindow::onLoadImage() {
+	QString filename = QFileDialog::getOpenFileName(this, tr("Load Image file..."), "", tr("Image Files (*.png)"));
+	if (filename.isEmpty()) return;
+
+	glWidget3D->bgImage.load(filename.toUtf8().constData());
 }
 
 void MainWindow::onSaveImage() {
