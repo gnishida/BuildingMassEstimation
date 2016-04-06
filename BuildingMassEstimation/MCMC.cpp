@@ -25,22 +25,28 @@ namespace mcmc {
 	void Chain::generateProposal() {
 		next_grammar = grammar;
 
+		int resolution = 10;
+
 		// next_grammarのパラメータ値を変更する
 		for (auto it = next_grammar.attrs.begin(); it != next_grammar.attrs.end(); ++it) {
 			float range = it->second.range_end - it->second.range_start;
-			float unit = range / 9.0f;
-			//int index = std::min(9.0f, (std::stof(it->second.value) - it->second.range_start) / unit + 0.5f);
-			int index = (std::stof(it->second.value) - it->second.range_start) / unit;
-			int r = rand() % 3;
+			float unit = range / resolution;
+			int index = std::max(0.0f, std::min((float)resolution, (std::stof(it->second.value) - it->second.range_start) / unit + 0.5f));
+			//int index = (std::stof(it->second.value) - it->second.range_start) / unit;
+			int r = rand() % 5;
 
 			if (r == 0) {
 				index = std::max(0, index - 1);
 			}
-			else if (r == 2) {
-				index = std::min(9, index + 1);
+			else if (r == 4) {
+				index = std::min(resolution, index + 1);
 			}
 
 			it->second.value = std::to_string(unit * index + it->second.range_start);
+
+			if (std::stof(it->second.value) > it->second.range_end) {
+				int xxx = 0;
+			}
 		}
 	}
 
@@ -69,7 +75,7 @@ namespace mcmc {
 		this->orig_grammar = grammar;
 
 		cv::Mat grayImage = cv::Mat(this->target.height(), this->target.width(), CV_8UC4, this->target.bits(), this->target.bytesPerLine()).clone();
-		int c = grayImage.channels();
+		
 		// resize 1/4
 		cv::cvtColor(grayImage, grayImage, CV_RGB2GRAY);
 		cv::resize(grayImage, grayImage, cv::Size(grayImage.cols * 0.5, grayImage.rows * 0.5));
@@ -105,13 +111,13 @@ namespace mcmc {
 
 		// initialize chain
 		Chain chain(orig_grammar, 1.0f);
-		chain.E = evaluate(render(chain.grammar));
+		chain.E = evaluate(render(chain.grammar), chain.grammar);
 		chain.best_grammar = chain.grammar;
 		chain.best_E = chain.E;
 
 		for (int iter = 0; iter < maxIterations; ++iter) {
 			chain.generateProposal();
-			chain.next_E = evaluate(render(chain.next_grammar));
+			chain.next_E = evaluate(render(chain.next_grammar), chain.next_grammar);
 			chain.update();
 
 			SGD(chain, 24, 4);
@@ -188,14 +194,18 @@ namespace mcmc {
 					// option 1
 					float range = param_it->second.range_end - param_it->second.range_start;
 					float unit = range / resolution;
-					//int index = std::min(9.0f, (std::stof(param_it->second.value) - param_it->second.range_start) / unit + 0.5f);
-					int index = (std::stof(param_it->second.value) - param_it->second.range_start + 0.5) / unit;
+					int index = std::min(9.0f, (std::stof(param_it->second.value) - param_it->second.range_start) / unit + 0.5f);
+					//int index = (std::stof(param_it->second.value) - param_it->second.range_start + 0.5) / unit;
 					param_it->second.value = std::to_string(unit * std::min(resolution, index + 1) + param_it->second.range_start);
-					float next_E1 = evaluate(render(next_grammar));
+					float next_E1 = evaluate(render(next_grammar), next_grammar);
+
+					if (std::stof(param_it->second.value) > param_it->second.range_end) {
+						int xxx = 0;
+					}
 
 					// option 2
 					param_it->second.value = std::to_string(unit * std::max(0, index - 1) + param_it->second.range_start);
-					float next_E2 = evaluate(render(next_grammar));
+					float next_E2 = evaluate(render(next_grammar), next_grammar);
 
 					if (next_E1 < chain.E && next_E1 < next_E2) {
 						param_it->second.value = std::to_string(unit * std::min(resolution, index + 1) + param_it->second.range_start);
@@ -229,6 +239,12 @@ namespace mcmc {
 			// increase the resolution
 			resolution *= 2;
 		}
+
+		///////////////// DEBUG //////////////////////////////////////////
+		for (auto it = chain.best_grammar.attrs.begin(); it != chain.best_grammar.attrs.end(); ++it) {
+			std::cout << it->second.value << ",";
+		}
+		std::cout << endl;
 	}
 
 	/**
@@ -250,12 +266,12 @@ namespace mcmc {
 		
 		// initialize chain
 		Chain chain1(orig_grammar, 1.0f);
-		chain1.E = evaluate(render(chain1.grammar));
+		chain1.E = evaluate(render(chain1.grammar), chain1.grammar);
 		chain1.best_grammar = chain1.grammar;
 		chain1.best_E = chain1.E;
 
 		Chain chain2(orig_grammar, 2.0f);
-		chain2.E = evaluate(render(chain2.grammar));
+		chain2.E = evaluate(render(chain2.grammar), chain2.grammar);
 		chain2.best_grammar = chain2.grammar;
 		chain2.best_E = chain2.E;
 
@@ -264,11 +280,11 @@ namespace mcmc {
 
 			// next_grammarのパラメータ値を変更する
 			chain1.generateProposal();
-			chain1.next_E = evaluate(render(chain1.next_grammar));
+			chain1.next_E = evaluate(render(chain1.next_grammar), chain1.next_grammar);
 			chain1.update();
 	
 			chain2.generateProposal();
-			chain2.next_E = evaluate(render(chain2.next_grammar));
+			chain2.next_E = evaluate(render(chain2.next_grammar), chain2.next_grammar);
 			chain2.update();
 
 			if ((iter + 1) % 100 == 0) {
@@ -345,7 +361,7 @@ namespace mcmc {
 		return glWidget->grabFrameBuffer();
 	}
 
-	float MCMC::evaluate(QImage& image) {
+	float MCMC::evaluate(QImage& image, cga::Grammar& grammar) {
 		// convert to gray scale image
 		cv::Mat sourceImage = cv::Mat(image.height(), image.width(), CV_8UC4, image.bits(), image.bytesPerLine()).clone();
 		cv::Mat mat;
@@ -364,7 +380,28 @@ namespace mcmc {
 		cv::Mat distMap;
 		cv::distanceTransform(mat, distMap, CV_DIST_L2, 3);
 
-		return distance(distMap, targetDistMap, SIMILARITY_METRICS_ALPHA, SIMILARITY_METRICS_BETA);
+		float dist = distance(distMap, targetDistMap, SIMILARITY_METRICS_ALPHA, SIMILARITY_METRICS_BETA);
+		float align = 0;// alignCost(grammar);
+		
+
+		return dist + align * 0.05;
+	}
+
+	float MCMC::alignCost(cga::Grammar& grammar) {
+		float diff = std::min(1.0f, fabs(std::stof(grammar.attrs["xx_0"].value) - std::stof(grammar.attrs["x_1"].value)));
+		diff += std::min(1.0f, fabs(std::stof(grammar.attrs["xx_2"].value) - std::stof(grammar.attrs["x_3"].value)));
+		diff += std::min(1.0f, fabs(std::stof(grammar.attrs["x_0"].value) - std::stof(grammar.attrs["x_2"].value)));
+		diff += std::min(1.0f, fabs(std::stof(grammar.attrs["x_1"].value) - std::stof(grammar.attrs["x_3"].value)));
+		diff += std::min(1.0f, fabs(std::stof(grammar.attrs["xx_0"].value) - std::stof(grammar.attrs["xx_2"].value)));
+		diff += std::min(1.0f, fabs(std::stof(grammar.attrs["xx_1"].value) - std::stof(grammar.attrs["xx_3"].value)));
+		diff += std::min(1.0f, fabs(std::stof(grammar.attrs["y_0"].value) - std::stof(grammar.attrs["y_1"].value)));
+		diff += std::min(1.0f, fabs(std::stof(grammar.attrs["yy_0"].value) - std::stof(grammar.attrs["yy_1"].value)));
+		diff += std::min(1.0f, fabs(std::stof(grammar.attrs["yy_0"].value) - std::stof(grammar.attrs["y_2"].value)));
+		diff += std::min(1.0f, fabs(std::stof(grammar.attrs["yy_1"].value) - std::stof(grammar.attrs["y_3"].value)));
+		diff += std::min(1.0f, fabs(std::stof(grammar.attrs["y_2"].value) - std::stof(grammar.attrs["y_3"].value)));
+		diff += std::min(1.0f, fabs(std::stof(grammar.attrs["yy_2"].value) - std::stof(grammar.attrs["yy_3"].value)));
+
+		return diff;
 	}
 
 	float distance(const cv::Mat& distMap, const cv::Mat& targetDistMap, float alpha, float beta) {

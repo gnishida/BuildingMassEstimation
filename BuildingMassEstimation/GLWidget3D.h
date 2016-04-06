@@ -20,10 +20,23 @@ public:
 	GLWidget3D(MainWindow *parent = 0);
 
 	void updateStatusBar();
+	void loadImage(const std::string& filename);
+	void detectEdges(const cv::Mat& img);
+	void saveContour(const std::string& filename);
+	void extractCameraParameters();
+	cv::Mat extractCameraIntrinsicParameters(std::vector<glm::vec2>& vp);
+	cv::Mat extractCameraExtrinsicParameters(std::vector<glm::vec2>& vp, const cv::Mat& K);
+	std::vector<glm::vec2> computeVanishingPoints(const std::vector<std::pair<glm::vec2, glm::vec2> >& v_lines);
+	std::vector<std::pair<glm::vec2, glm::vec2> > getLeftmostHLines(const std::vector<std::pair<glm::vec2, glm::vec2> >& lines);
+	std::vector<std::pair<glm::vec2, glm::vec2> > getRightmostHLines(const std::vector<std::pair<glm::vec2, glm::vec2> >& lines);
+	std::pair<glm::vec2, glm::vec2> getLeftmostVLine(const std::vector<std::pair<glm::vec2, glm::vec2> >& lines);
+	std::pair<glm::vec2, glm::vec2> getRightmostVLine(const std::vector<std::pair<glm::vec2, glm::vec2> >& lines);
 	void drawScene();
 	void render();
 	void loadCGA(const std::string& cga_filename);
-	void generateTrainingData(int image_width, int image_height);
+	void generateTrainingData();
+	void generateTrainingDataWithAngleDelta(float xangle_delta, float yangle_delta);
+	void generateTrainingDataWithDifferentAngles();
 	void runMCMC(const std::string& cga_filename, const std::string& target_filename, int numIterations);
 	void runMCMCAll(const std::string& cga_dir, int numIterations);
 	void fixCamera();
@@ -34,7 +47,8 @@ public:
 protected:
 	void initializeGL();
 	void resizeGL(int width, int height);
-	void paintGL();    
+	//void paintGL();
+	void paintEvent(QPaintEvent* e);
 	void mousePressEvent(QMouseEvent *e);
 	void mouseMoveEvent(QMouseEvent *e);
 	void mouseReleaseEvent(QMouseEvent *e);
@@ -52,6 +66,10 @@ public:
 
 	RenderManager renderManager;
 	QImage bgImage;
+	glm::vec2 lastPos;
+	glm::vec2 curPos;
+	std::vector<std::pair<glm::vec2, glm::vec2> > v_lines;
+	bool dragging;
 
 };
 

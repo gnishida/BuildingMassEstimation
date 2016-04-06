@@ -14,6 +14,8 @@
 #include "CGA.h"
 #include "Rectangle.h"
 #include "MCMCConfigDialog.h"
+#include <fstream>
+#include <opencv2/core.hpp>
 
 #ifndef M_PI
 #define	M_PI	3.141592653
@@ -22,6 +24,10 @@
 GLWidget3D::GLWidget3D(MainWindow *parent) : QGLWidget(QGLFormat(QGL::SampleBuffers)) {
 	this->mainWin = parent;
 	shiftPressed = false;
+	dragging = false;
+
+	// This is necessary to prevent the screen overdrawn by OpenGL
+	setAutoFillBackground(false);
 
 	// 光源位置をセット
 	// ShadowMappingは平行光源を使っている。この位置から原点方向を平行光源の方向とする。
@@ -38,17 +44,292 @@ void GLWidget3D::updateStatusBar() {
 	mainWin->statusBar()->showMessage(msg);
 }
 
+void GLWidget3D::loadImage(const std::string& filename) {
+	QImage img;
+	img.load(filename.c_str());
+	bgImage = img.scaled(width(), height());
+
+	cv::Mat m = cv::Mat(bgImage.height(), bgImage.width(), CV_8UC4, bgImage.bits(), bgImage.bytesPerLine()).clone();
+	detectEdges(m);
+
+	update();
+}
+
+void GLWidget3D::detectEdges(const cv::Mat& img) {
+	cv::Mat grayImage;
+
+	cv::cvtColor(img, grayImage, CV_BGR2GRAY);
+	cv::blur(grayImage, grayImage, cv::Size(3, 3));
+	cv::Canny(grayImage, grayImage, 50, 200, 3);
+	cv::imwrite("test.png", grayImage);
+
+	std::vector<cv::Vec4i> lines;
+	HoughLinesP(grayImage, lines, 1, CV_PI / 180, 50, 100, 20);
+
+	cv::Mat test(grayImage.size(), grayImage.type(), cv::Scalar(255));
+	for (size_t i = 0; i < lines.size(); i++) {
+		cv::line(test, cv::Point(lines[i][0], lines[i][1]), cv::Point(lines[i][2], lines[i][3]), cv::Scalar(0), 3, CV_AA);
+	}
+	cv::imwrite("test2.png", test);
+}
+
+void GLWidget3D::saveContour(const std::string& filename) {
+	/*
+	std::ofstream out(filename);
+	for (auto v_line : v_lines) {
+		out << v_line.first.x << "\t" << v_line.first.y << "\t" << v_line.second.x << "\t" << v_line.second.y << "\n";
+	}
+	out.close();
+	*/
+
+	cv::Mat img(height(), width(), CV_8UC3, cv::Scalar(255, 255, 255));
+	for (auto line : v_lines) {
+		cv::line(img, cv::Point(line.first.x, line.first.y), cv::Point(line.second.x, line.second.y), cv::Scalar(0, 0, 0), 1);
+	}
+	cv::imwrite(filename, img);
+}
+
+void GLWidget3D::extractCameraParameters() {
+	std::vector<glm::vec2> vp = computeVanishingPoints(v_lines);
+
+	cv::Mat K = extractCameraIntrinsicParameters(vp);
+	cv::Mat R33 = extractCameraExtrinsicParameters(vp, K);
+
+	cv::Mat R;
+	cv::Rodrigues(R33, R);
+
+	std::cout << "R33: " << std::endl;
+	std::cout << R33 << std::endl;
+	std::cout << "R: " << std::endl;
+	std::cout << R << std::endl;
+}
+
+cv::Mat GLWidget3D::extractCameraIntrinsicParameters(std::vector<glm::vec2>& vp) {
+	vp[0] = glm::vec2(1344.35, 543.089);
+	vp[1] = glm::vec2(-186.516, 558.918);
+	vp[2] = glm::vec2(500.968, -2966.13);
+
+	cv::Mat_<double> A(3, 4);
+	A(0, 0) = vp[0].x * vp[1].x + vp[0].y * vp[1].y;
+	A(0, 1) = vp[1].x + vp[0].x;
+	A(0, 2) = vp[1].y + vp[0].y;
+	A(0, 3) = 1;
+
+	A(1, 0) = vp[0].x * vp[2].x + vp[0].y * vp[2].y;
+	A(1, 1) = vp[2].x + vp[0].x;
+	A(1, 2) = vp[2].y + vp[0].y;
+	A(1, 3) = 1;
+
+	A(2, 0) = vp[2].x * vp[1].x + vp[2].y * vp[1].y;
+	A(2, 1) = vp[1].x + vp[2].x;
+	A(2, 2) = vp[1].y + vp[2].y;
+	A(2, 3) = 1;
+
+
+	cv::Mat dst;
+	cv::SVD::solveZ(A, dst);
+
+	cv::Mat_<double> W(3, 3);
+
+	W(0, 0) = dst.at<double>(0, 0);
+	W(0, 1) = 0;
+	W(0, 2) = dst.at<double>(1, 0);
+
+	W(1, 0) = 0;
+	W(1, 1) = dst.at<double>(0, 0);
+	W(1, 2) = dst.at<double>(2, 0);
+
+	W(2, 0) = dst.at<double>(1, 0);
+	W(2, 1) = dst.at<double>(2, 0);
+	W(2, 2) = dst.at<double>(3, 0);
+
+	if (W(2, 2) < 0) W = -W;
+	std::cout << W << std::endl;
+
+
+
+	cv::Mat chol = W.clone();
+
+	if (Cholesky(chol.ptr<double>(), chol.step, chol.cols, 0, 0, 0)) {
+		cv::Mat diagElem = chol.diag();
+
+		for (int e = 0; e < diagElem.rows; ++e)	{
+			float elem = diagElem.at<double>(e);
+			chol.row(e) *= elem;
+			chol.at<double>(e, e) = 1.0f / elem;
+		}
+	}
+	chol.at<double>(2, 0) = 0;
+	chol.at<double>(2, 1) = 0;
+
+	std::cout << "chol:" << std::endl;
+	std::cout << chol << std::endl;
+
+	cv::Mat K = chol.inv(cv::DECOMP_SVD);
+	K.at<double>(2, 2) = 1;
+	std::cout << "K:" << std::endl;
+	std::cout << K << std::endl;
+
+	return K;
+}
+
+cv::Mat GLWidget3D::extractCameraExtrinsicParameters(std::vector<glm::vec2>& vp, const cv::Mat& K) {
+	cv::Mat invK = K.inv(cv::DECOMP_SVD);
+
+	cv::Mat_<double> v(3, 3);
+	v(0, 0) = vp[0].x;
+	v(1, 0) = vp[0].y;
+	v(2, 0) = 1;
+	v(0, 1) = vp[1].x;
+	v(1, 1) = vp[1].y;
+	v(2, 1) = 1;
+	v(0, 2) = vp[2].x;
+	v(1, 2) = vp[2].y;
+	v(2, 2) = 1;
+
+
+	cv::Mat R = invK * v;
+	double lambda1 = sqrt(R.at<double>(0, 0) * R.at<double>(0, 0) + R.at<double>(1, 0) * R.at<double>(1, 0) + R.at<double>(2, 0) * R.at<double>(2, 0));
+	double lambda2 = sqrt(R.at<double>(0, 1) * R.at<double>(0, 1) + R.at<double>(1, 1) * R.at<double>(1, 1) + R.at<double>(2, 1) * R.at<double>(2, 1));
+	double lambda3 = sqrt(R.at<double>(0, 2) * R.at<double>(0, 2) + R.at<double>(1, 2) * R.at<double>(1, 2) + R.at<double>(2, 2) * R.at<double>(2, 2));
+
+	R.at<double>(0, 0) /= lambda1;
+	R.at<double>(1, 0) /= lambda1;
+	R.at<double>(2, 0) /= lambda1;
+	R.at<double>(0, 1) /= lambda2;
+	R.at<double>(1, 1) /= lambda2;
+	R.at<double>(2, 1) /= lambda2;
+	R.at<double>(0, 2) /= lambda3;
+	R.at<double>(1, 2) /= lambda3;
+	R.at<double>(2, 2) /= lambda3;
+
+	return R;
+}
+
+std::vector<glm::vec2> GLWidget3D::computeVanishingPoints(const std::vector<std::pair<glm::vec2, glm::vec2> >& v_lines) {
+	std::vector<glm::vec2> vp(3);
+
+	// 最も左の縦の線と、最も右の縦の線
+	std::pair<glm::vec2, glm::vec2> left_vline = getLeftmostVLine(v_lines);
+	std::pair<glm::vec2, glm::vec2> right_vline = getRightmostVLine(v_lines);
+
+	float tab, tcd;
+	utils::segmentSegmentIntersect(left_vline.first, left_vline.second, right_vline.first, right_vline.second, &tab, &tcd, false, vp[2]);
+
+	std::vector<std::pair<glm::vec2, glm::vec2> > left_hlines = getLeftmostHLines(v_lines);
+	std::vector<std::pair<glm::vec2, glm::vec2> > right_hlines = getRightmostHLines(v_lines);
+
+	utils::segmentSegmentIntersect(left_hlines[0].first, left_hlines[0].second, left_hlines[1].first, left_hlines[1].second, &tab, &tcd, false, vp[1]);
+	utils::segmentSegmentIntersect(right_hlines[0].first, right_hlines[0].second, right_hlines[1].first, right_hlines[1].second, &tab, &tcd, false, vp[0]);
+
+	std::cout << "-----------------------------------------------" << std::endl;
+	std::cout << "(" << vp[0].x << "," << vp[0].y << ")" << std::endl;
+	std::cout << "(" << vp[1].x << "," << vp[1].y << ")" << std::endl;
+	std::cout << "(" << vp[2].x << "," << vp[2].y << ")" << std::endl;
+
+	return vp;
+}
+
+std::vector<std::pair<glm::vec2, glm::vec2> > GLWidget3D::getLeftmostHLines(const std::vector<std::pair<glm::vec2, glm::vec2> >& lines) {
+	float min_x1 = std::numeric_limits<float>::max();
+	float min_x2 = std::numeric_limits<float>::max();
+	std::vector<std::pair<glm::vec2, glm::vec2> > ret_lines(2);
+
+	for (auto line : lines) {
+		if (fabs(line.first.x - line.second.x) > fabs(line.first.y - line.second.y) && fabs(line.first.x - line.second.x) > 50) {
+			if (std::min(line.first.x, line.second.x) < min_x1) {
+				min_x2 = min_x1;
+				ret_lines[1] = ret_lines[0];
+				min_x1 = std::min(line.first.x, line.second.x);
+				ret_lines[0] = line;
+			}
+			else if (std::min(line.first.x, line.second.x) < min_x2) {
+				min_x2 = std::min(line.first.x, line.second.x);
+				ret_lines[1] = line;
+			}
+		}
+	}
+
+	return ret_lines;
+}
+
+std::vector<std::pair<glm::vec2, glm::vec2> > GLWidget3D::getRightmostHLines(const std::vector<std::pair<glm::vec2, glm::vec2> >& lines) {
+	float max_x1 = -std::numeric_limits<float>::max();
+	float max_x2 = -std::numeric_limits<float>::max();
+	std::vector<std::pair<glm::vec2, glm::vec2> > ret_lines(2);
+
+	for (auto line : lines) {
+		if (fabs(line.first.x - line.second.x) > fabs(line.first.y - line.second.y) && fabs(line.first.x - line.second.x) > 50) {
+			if (std::max(line.first.x, line.second.x) > max_x1) {
+				max_x2 = max_x1;
+				ret_lines[1] = ret_lines[0];
+				max_x1 = std::max(line.first.x, line.second.x);
+				ret_lines[0] = line;
+			}
+			else if (std::max(line.first.x, line.second.x) > max_x2) {
+				max_x2 = std::max(line.first.x, line.second.x);
+				ret_lines[1] = line;
+			}
+		}
+	}
+
+	return ret_lines;
+}
+
+std::pair<glm::vec2, glm::vec2> GLWidget3D::getLeftmostVLine(const std::vector<std::pair<glm::vec2, glm::vec2> >& lines) {
+	float min_x = std::numeric_limits<float>::max();
+	std::pair<glm::vec2, glm::vec2> ret_line;
+
+	for (auto line : lines) {
+		if (fabs(line.first.x - line.second.x) < fabs(line.first.y - line.second.y)) {
+			if (std::min(line.first.x, line.second.x) < min_x) {
+				min_x = std::min(line.first.x, line.second.x);
+				ret_line = line;
+			}
+		}
+	}
+
+	return ret_line;
+}
+
+std::pair<glm::vec2, glm::vec2> GLWidget3D::getRightmostVLine(const std::vector<std::pair<glm::vec2, glm::vec2> >& lines) {
+	float max_x = -std::numeric_limits<float>::max();
+	std::pair<glm::vec2, glm::vec2> ret_line;
+
+	for (auto line : lines) {
+		if (fabs(line.first.x - line.second.x) < fabs(line.first.y - line.second.y)) {
+			if (std::max(line.first.x, line.second.x) > max_x) {
+				max_x = std::max(line.first.x, line.second.x);
+				ret_line = line;
+			}
+		}
+	}
+
+	return ret_line;
+}
+
 /**
  * This event handler is called when the mouse press events occur.
  */
 void GLWidget3D::mousePressEvent(QMouseEvent *e) {
-	camera.mousePress(e->x(), e->y());
+	if (e->buttons() & Qt::RightButton) {
+		camera.mousePress(e->x(), e->y());
+	}
+	else if (e->button() & Qt::LeftButton) {
+		lastPos = glm::vec2(e->x(), e->y());
+		curPos = glm::vec2(e->x(), e->y());
+		dragging = true;
+	}
 }
 
 /**
  * This event handler is called when the mouse release events occur.
  */
 void GLWidget3D::mouseReleaseEvent(QMouseEvent *e) {
+	if (e->button() == Qt::LeftButton) {
+		v_lines.push_back(std::make_pair(lastPos, curPos));
+		dragging = false;
+	}
 }
 
 /**
@@ -63,12 +344,15 @@ void GLWidget3D::mouseMoveEvent(QMouseEvent *e) {
 			camera.rotate(e->x(), e->y());
 		}
 	}
+	else if (e->buttons() & Qt::LeftButton) {
+		curPos = glm::vec2(e->x(), e->y());
+	}
 	updateStatusBar();
-	updateGL();
+	update();
 }
 
 void GLWidget3D::wheelEvent(QWheelEvent* e) {
-	camera.zoom(e->delta());
+	camera.zoom(e->delta() * 0.01);
 	updateStatusBar();
 	update();
 }
@@ -144,12 +428,42 @@ void GLWidget3D::resizeGL(int width, int height) {
 /**
  * This function is called whenever the widget needs to be painted.
  */
-void GLWidget3D::paintGL() {
+void GLWidget3D::paintEvent(QPaintEvent* e) {
+	// OpenGLで描画
+	makeCurrent();
+
+	glMatrixMode(GL_MODELVIEW);
+	glPushMatrix();
+	
 	render();
 
-	//printf("<<\n");
-	//VBOUtil::disaplay_memory_usage();
+	// REMOVE
+	glActiveTexture(GL_TEXTURE0);
+	
+	// OpenGLの設定を元に戻す
+	glShadeModel(GL_FLAT);
+	glDisable(GL_CULL_FACE);
+	glDisable(GL_DEPTH_TEST);
+	glDisable(GL_LIGHTING);
 
+	glMatrixMode(GL_MODELVIEW);
+	glPopMatrix();
+
+	// draw sketch
+	QPainter painter(this);
+	painter.setOpacity(0.6);
+	painter.drawImage(0, 0, bgImage);
+
+	painter.setPen(QPen(Qt::black, 3));
+	for (auto v_line : v_lines) {
+		painter.drawLine(v_line.first.x, v_line.first.y, v_line.second.x, v_line.second.y);
+	}
+	if (dragging) {
+		painter.drawLine(lastPos.x, lastPos.y, curPos.x, curPos.y);
+	}
+	painter.end();
+
+	glEnable(GL_DEPTH_TEST);
 }
 
 /**
@@ -419,11 +733,8 @@ void GLWidget3D::loadCGA(const std::string& cga_filename) {
 
 	renderManager.removeObjects();
 
-	glm::mat4 modelMat = glm::rotate(glm::mat4(), -(float)M_PI * 0.5f, glm::vec3(1, 0, 0));
-	std::vector<Vertex> vertices;
-
 	// set axiom
-	cga::Rectangle* start = new cga::Rectangle("Start", "", glm::translate(glm::rotate(glm::mat4(), -3.141592f * 0.5f, glm::vec3(1, 0, 0)), glm::vec3(-0.5, -0.5, 0)), glm::mat4(), 1, 1, glm::vec3(1, 1, 1));
+	cga::Rectangle* start = new cga::Rectangle("Start", "", glm::translate(glm::rotate(glm::mat4(), -3.141592f * 0.5f, glm::vec3(1, 0, 0)), glm::vec3(0, 0, 0)), glm::mat4(), 0, 0, glm::vec3(1, 1, 1));
 	cga.stack.push_back(boost::shared_ptr<cga::Shape>(start));
 
 	// generate 3d model
@@ -438,8 +749,8 @@ void GLWidget3D::loadCGA(const std::string& cga_filename) {
 	render();
 }
 
-void GLWidget3D::generateTrainingData(int image_width, int image_height) {
-	QString resultDir = "results/buildings/";
+void GLWidget3D::generateTrainingData() {
+	QString resultDir = "results/contours/";
 
 	if (QDir(resultDir).exists()) {
 		QDir(resultDir).removeRecursively();
@@ -448,239 +759,245 @@ void GLWidget3D::generateTrainingData(int image_width, int image_height) {
 
 	srand(0);
 	renderManager.useShadow = false;
+	renderManager.renderingMode = RenderManager::RENDERING_MODE_CONTOUR;
 
 	int origWidth = width();
 	int origHeight = height();
-	//resize(512, 512);
-	//resizeGL(512, 512);
+	resize(512, 512);
+	resizeGL(512, 512);
 
 	// fix camera view direction and position
 	fixCamera();
 
-	std::vector<std::string> cga_files;
-	cga_files.push_back("../cga/primitives/prim1.xml");
-	//cga_files.push_back("../cga/primitives/prim2.xml");
+	QDir dir("..\\cga\\mass_20160329\\");
 
-	std::vector<cga::Grammar> grammars;
-	for (int i = 0; i < cga_files.size(); ++i) {
-		cga::Grammar g;
-		cga::parseGrammar(cga_files[i].c_str(), g);
-		grammars.push_back(g);
-	}
+	int numSamples = 100;
+	QStringList filters;
+	filters << "*.xml";
+	QFileInfoList fileInfoList = dir.entryInfoList(filters, QDir::Files | QDir::NoDotAndDotDot);
+	for (int i = 0; i < fileInfoList.size(); ++i) {
+		int count = 0;
 
-	cga::CGA cga;
-	cga.modelMat = glm::rotate(glm::mat4(), -3.1415926f * 0.5f, glm::vec3(1, 0, 0));
+		if (!QDir(resultDir + fileInfoList[i].baseName()).exists()) QDir().mkdir(resultDir + fileInfoList[i].baseName());
+		
+		cga::CGA cga;
 
-	int count = 0;
-	for (int k = 0; k < 10; ++k) {
-		std::vector<float> param_values;
+		cga::Grammar grammar;
+		cga.modelMat = glm::rotate(glm::mat4(), -(float)M_PI * 0.5f, glm::vec3(1, 0, 0));
+		cga::parseGrammar(fileInfoList[i].absoluteFilePath().toUtf8().constData(), grammar);
 
-		renderManager.removeObjects();
+		for (int k = 0; k < numSamples; ++k) {
+			renderManager.removeObjects();
 
-		glm::mat4 modelMat = glm::rotate(glm::mat4(), -(float)M_PI * 0.5f, glm::vec3(1, 0, 0));
-		std::vector<Vertex> vertices;
-
-		// 1つのビルは、3つのprimitiveで構成されるという前提
-		std::vector<glutils::BoundingBox> bboxes;
-		for (int p = 0; p < 3; ++p) {
-			// primitive type
-			int obj_type = rand() % grammars.size();
+			cga.randomParamValues(grammar);
 
 			// set axiom
-			cga::Rectangle* start = new cga::Rectangle("Start", "", glm::translate(glm::rotate(glm::mat4(), -3.141592f * 0.5f, glm::vec3(1, 0, 0)), glm::vec3(-0.5, -0.5, 0)), glm::mat4(), 1, 1, glm::vec3(1, 1, 1));
+			cga::Rectangle* start = new cga::Rectangle("Start", "", glm::translate(glm::rotate(glm::mat4(), -3.141592f * 0.5f, glm::vec3(1, 0, 0)), glm::vec3(0, 0, 0)), glm::mat4(), 0, 0, glm::vec3(1, 1, 1));
 			cga.stack.push_back(boost::shared_ptr<cga::Shape>(start));
 
 			// generate 3d model
-			cga.randomParamValues(grammars[obj_type]);
-			cga.derive(grammars[obj_type], true);
+			cga.derive(grammar, true);
 			std::vector<boost::shared_ptr<glutils::Face> > faces;
 			cga.generateGeometry(faces);
+			renderManager.addFaces(faces, true);
 
-			// set color
-			glm::vec4 color(p == 0 ? 1 : 0, p == 1 ? 1 : 0, p == 2 ? 1 : 0, 1);
-			for (int fi = 0; fi < faces.size(); ++fi) {
-				for (int vi = 0; vi < faces[fi]->vertices.size(); ++vi) {
-					faces[fi]->vertices[vi].color = color;
-				}
-			}
+			//renderManager.updateShadowMap(this, light_dir, light_mvpMatrix);
 
-			renderManager.addFaces(faces, false);
+			// render 2d image
+			render();
+			QImage img = grabFrameBuffer();
+			cv::Mat mat = cv::Mat(img.height(), img.width(), CV_8UC4, img.bits(), img.bytesPerLine()).clone();
 
-			// 2d bounding boxを計算
-			glutils::BoundingBox bbox;
-			for (auto face : faces) {
-				for (auto v : face->vertices) {
-					glm::vec4 pp = camera.mvpMatrix * glm::vec4(v.position, 1);
-					pp.x = (pp.x / pp.w * 0.5 + 0.5) * width();
-					pp.y = (0.5 - pp.y / pp.w * 0.5) * height();
-					bbox.addPoint(glm::vec2(pp.x, pp.y));
-				}
-			}
-
-			bboxes.push_back(bbox);
-		}
-
-		//renderManager.updateShadowMap(this, light_dir, light_mvpMatrix);
-
-		// render 2d image with color
-		renderManager.renderingMode = RenderManager::RENDERING_MODE_BASIC;
-
-		// render 2d image
-		render();
-		QImage img = this->grabFrameBuffer();
-		/*
-		QPainter painter(&img);
-		painter.setPen(QPen(Qt::blue, 3, Qt::DotLine));
-		for (auto bbox : bboxes) {
-			painter.drawRect(bbox.minPt.x - 10, bbox.minPt.y - 10, bbox.maxPt.x - bbox.minPt.x + 20, bbox.maxPt.y - bbox.minPt.y + 20);
-			//cv::rectangle(mat, cv::Point(bbox.minPt.x - 10, bbox.minPt.y - 10), cv::Point(bbox.maxPt.x + 10, bbox.maxPt.y + 10), cv::Scalar(255, 0, 0), 2, );
-		}
-		*/
-		cv::Mat mat = cv::Mat(img.height(), img.width(), CV_8UC4, img.bits(), img.bytesPerLine()).clone();
-		
-
-		// 実際のピクセルカラーを使って、さらにtightなbounding boxにする
-		for (int bi = 0; bi < bboxes.size(); ++bi) {
-			glm::vec3 color(bi == 0 ? 255 : 0, bi == 1 ? 255 : 0, bi == 2 ? 255 : 0);
-
-			glm::vec2 minPt = glm::vec2(bboxes[bi].minPt);
-			glm::vec2 maxPt = glm::vec2(bboxes[bi].maxPt);
-
-			// X最小値
-			bool found = false;
-			for (int x = minPt.x; x <= maxPt.x; ++x) {
-				for (int y = minPt.y; y <= maxPt.y; ++y) {
-					/*
-					int B = mat.at<cv::Vec4b>(y, x)[0];
-					int G = mat.at<cv::Vec4b>(y, x)[1];
-					int R = mat.at<cv::Vec4b>(y, x)[2];
-
-					std::cout << B << "," << G << "," << R << std::endl;
-					*/
-					if (mat.at<cv::Vec4b>(y, x)[0] == color.b && mat.at<cv::Vec4b>(y, x)[1] == color.g && mat.at<cv::Vec4b>(y, x)[2] == color.r) {
-						found = true;
-						break;
-					}
-				}
-
-				if (found) {
-					bboxes[bi].minPt.x = x;
-					break;
-				}
-			}
-
-			if (!found) {
-				bboxes[bi].maxPt = bboxes[bi].minPt;
-				continue;
-			}
-
-			// X最大値
-			for (int x = maxPt.x; x >= minPt.x; --x) {
-				bool found = false;
-				for (int y = minPt.y; y <= maxPt.y; ++y) {
-					if (mat.at<cv::Vec4b>(y, x)[0] == color.b && mat.at<cv::Vec4b>(y, x)[1] == color.g && mat.at<cv::Vec4b>(y, x)[2] == color.r) {
-						found = true;
-						break;
-					}
-				}
-
-				if (found) {
-					bboxes[bi].maxPt.x = x;
-					break;
-				}
-			}
-
-			// Y最小値
-			for (int y = minPt.y; y <= maxPt.y; ++y) {
-				bool found = false;
-				for (int x = minPt.x; x <= maxPt.x; ++x) {
-					if (mat.at<cv::Vec4b>(y, x)[0] == color.b && mat.at<cv::Vec4b>(y, x)[1] == color.g && mat.at<cv::Vec4b>(y, x)[2] == color.r) {
-						found = true;
-						break;
-					}
-				}
-
-				if (found) {
-					bboxes[bi].minPt.y = y;
-					break;
-				}
-			}
-
-			// Y最大値
-			for (int y = maxPt.y; y >= minPt.y; --y) {
-				bool found = false;
-				for (int x = minPt.x; x <= maxPt.x; ++x) {
-					if (mat.at<cv::Vec4b>(y, x)[0] == color.b && mat.at<cv::Vec4b>(y, x)[1] == color.g && mat.at<cv::Vec4b>(y, x)[2] == color.r) {
-						found = true;
-						break;
-					}
-				}
-
-				if (found) {
-					bboxes[bi].maxPt.y = y;
-					break;
-				}
-			}
-		}
-		
-		// 小さすぎるbounding boxは除外
-		for (int bi = 0; bi < bboxes.size(); ) {
-			if (fabs(bboxes[bi].maxPt.x - bboxes[bi].minPt.x) < 10 || fabs(bboxes[bi].maxPt.y - bboxes[bi].minPt.y) < 10) {
-				bboxes.erase(bboxes.begin() + bi);
-			}
-			else {
-				bi++;
-			}
-		}
-
-		// render 2d image with line rendering
-		renderManager.renderingMode = RenderManager::RENDERING_MODE_LINE;
-		render();
-		QImage img2 = this->grabFrameBuffer();
-
-		for (int bi = 0; bi < bboxes.size(); ++bi) {
-			//cv::rectangle(mat, cv::Rect(bboxes[bi].minPt.x - 10, bboxes[bi].minPt.y - 10, bboxes[bi].maxPt.x - bboxes[bi].minPt.x + 20, bboxes[bi].maxPt.y - bboxes[bi].minPt.y + 20), cv::Scalar(0, 0, 0), 2);
-		}
-
-		QPainter painter(&img2);
-		int bi = 0;
-		for (auto bbox : bboxes) {
-			if (bi == 0) {
-				painter.setPen(QPen(Qt::red, 3, Qt::DotLine));
-			}
-			else if (bi == 1) {
-				painter.setPen(QPen(Qt::green, 3, Qt::DotLine));
-			}
-			else {
-				painter.setPen(QPen(Qt::blue, 3, Qt::DotLine));
-			}
-			painter.drawRect(bbox.minPt.x - 10, bbox.minPt.y - 10, bbox.maxPt.x - bbox.minPt.x + 20, bbox.maxPt.y - bbox.minPt.y + 20);
-			//cv::rectangle(mat, cv::Point(bbox.minPt.x - 10, bbox.minPt.y - 10), cv::Point(bbox.maxPt.x + 10, bbox.maxPt.y + 10), cv::Scalar(255, 0, 0), 2, );
-			bi++;
-		}
-		cv::Mat mat2 = cv::Mat(img2.height(), img2.width(), CV_8UC4, img2.bits(), img2.bytesPerLine()).clone();
-
-
-		// 画像を縮小
-		/*
-		if (image_width < 512) {
-			float scale = 512.0f / width();
-			cv::resize(mat, mat, cv::Size(width() * scale, height() * scale));
+			// 画像を縮小
+			cv::resize(mat, mat, cv::Size(256, 256));
 			cv::threshold(mat, mat, 250, 255, CV_THRESH_BINARY);
+
+			// set filename
+			QString filename = resultDir + "/" + fileInfoList[i].baseName() + "/" + QString("image_%1.png").arg(count, 6, 10, QChar('0'));
+			cv::imwrite(filename.toUtf8().constData(), mat);
+
+			count++;
 		}
-		cv::resize(mat, mat, cv::Size(image_width, image_height));
-		cv::threshold(mat, mat, 250, 255, CV_THRESH_BINARY);
-		*/
-
-		// set filename
-		QString filename = resultDir + "/" + QString("image_%1.png").arg(count, 6, 10, QChar('0'));
-		cv::imwrite(filename.toUtf8().constData(), mat2);
-
-		count++;
 	}
 
-	//resize(origWidth, origHeight);
-	//resizeGL(origWidth, origHeight);
+	resize(origWidth, origHeight);
+	resizeGL(origWidth, origHeight);
+}
+
+void GLWidget3D::generateTrainingDataWithAngleDelta(float xangle_delta, float yangle_delta) {
+	QString resultDir = "results/contours/";
+
+	if (QDir(resultDir).exists()) {
+		QDir(resultDir).removeRecursively();
+	}
+	QDir().mkpath(resultDir);
+
+	srand(0);
+	renderManager.useShadow = false;
+	renderManager.renderingMode = RenderManager::RENDERING_MODE_CONTOUR;
+
+	int origWidth = width();
+	int origHeight = height();
+	resize(512, 512);
+	resizeGL(512, 512);
+
+	// fix camera view direction and position
+	fixCamera();
+
+	QDir dir("..\\cga\\mass_20160329\\");
+
+	int numSamples = 100;
+	QStringList filters;
+	filters << "*.xml";
+	QFileInfoList fileInfoList = dir.entryInfoList(filters, QDir::Files | QDir::NoDotAndDotDot);
+	for (int i = 0; i < fileInfoList.size(); ++i) {
+		int count = 0;
+
+		if (!QDir(resultDir + fileInfoList[i].baseName()).exists()) QDir().mkdir(resultDir + fileInfoList[i].baseName());
+
+		cga::CGA cga;
+
+		cga::Grammar grammar;
+		cga.modelMat = glm::rotate(glm::mat4(), -(float)M_PI * 0.5f, glm::vec3(1, 0, 0));
+		cga::parseGrammar(fileInfoList[i].absoluteFilePath().toUtf8().constData(), grammar);
+
+		// rotate the camera around y axis within [-70, 70]
+		for (int yrot_idx = 0; yrot_idx <= 4; ++yrot_idx) {
+			camera.yrot = 30 - yangle_delta * 0.5 + yangle_delta / 4 * yrot_idx;
+
+			// rotate the camera around x axis within [0, 30]
+			for (int xrot_idx = 0; xrot_idx <= 4; ++xrot_idx) {
+				camera.xrot = 20 - xangle_delta * 0.5 + xangle_delta / 4 * xrot_idx;
+				camera.updateMVPMatrix();
+
+				// randomly sample N parameter values
+				for (int k = 0; k < numSamples; ++k) {
+					renderManager.removeObjects();
+
+					cga.randomParamValues(grammar);
+
+					// set axiom
+					cga::Rectangle* start = new cga::Rectangle("Start", "", glm::translate(glm::rotate(glm::mat4(), -3.141592f * 0.5f, glm::vec3(1, 0, 0)), glm::vec3(0, 0, 0)), glm::mat4(), 0, 0, glm::vec3(1, 1, 1));
+					cga.stack.push_back(boost::shared_ptr<cga::Shape>(start));
+
+					// generate 3d model
+					cga.derive(grammar, true);
+					std::vector<boost::shared_ptr<glutils::Face> > faces;
+					cga.generateGeometry(faces);
+					renderManager.addFaces(faces, true);
+
+					//renderManager.updateShadowMap(this, light_dir, light_mvpMatrix);
+
+					// render 2d image
+					render();
+					QImage img = grabFrameBuffer();
+					cv::Mat mat = cv::Mat(img.height(), img.width(), CV_8UC4, img.bits(), img.bytesPerLine()).clone();
+
+					// 画像を縮小
+					cv::resize(mat, mat, cv::Size(256, 256));
+					cv::threshold(mat, mat, 250, 255, CV_THRESH_BINARY);
+
+					// set filename
+					QString filename = resultDir + "/" + fileInfoList[i].baseName() + "/" + QString("image_%1.png").arg(count, 6, 10, QChar('0'));
+					cv::imwrite(filename.toUtf8().constData(), mat);
+
+					count++;
+				}
+
+			}
+		}
+	}
+
+	resize(origWidth, origHeight);
+	resizeGL(origWidth, origHeight);
+}
+
+void GLWidget3D::generateTrainingDataWithDifferentAngles() {
+	QString resultDir = "results/contours/";
+
+	if (QDir(resultDir).exists()) {
+		QDir(resultDir).removeRecursively();
+	}
+	QDir().mkpath(resultDir);
+
+	srand(0);
+	renderManager.useShadow = false;
+	renderManager.renderingMode = RenderManager::RENDERING_MODE_CONTOUR;
+
+	int origWidth = width();
+	int origHeight = height();
+	resize(512, 512);
+	resizeGL(512, 512);
+
+	// fix camera view direction and position
+	fixCamera();
+
+	QDir dir("..\\cga\\mass_20160329\\");
+
+	int numSamples = 100;
+	QStringList filters;
+	filters << "*.xml";
+	QFileInfoList fileInfoList = dir.entryInfoList(filters, QDir::Files | QDir::NoDotAndDotDot);
+	for (int i = 0; i < fileInfoList.size(); ++i) {
+		int count = 0;
+
+		if (!QDir(resultDir + fileInfoList[i].baseName()).exists()) QDir().mkdir(resultDir + fileInfoList[i].baseName());
+
+		cga::CGA cga;
+
+		cga::Grammar grammar;
+		cga.modelMat = glm::rotate(glm::mat4(), -(float)M_PI * 0.5f, glm::vec3(1, 0, 0));
+		cga::parseGrammar(fileInfoList[i].absoluteFilePath().toUtf8().constData(), grammar);
+
+		// rotate the camera around y axis within [-70, 70]
+		for (int yrot_idx = 0; yrot_idx <= 10; ++yrot_idx) {
+			camera.yrot = 140 / 10.0 * yrot_idx - 70;
+
+			// rotate the camera around x axis within [0, 30]
+			for (int xrot_idx = 0; xrot_idx <= 3; ++xrot_idx) {
+				camera.xrot = 30 / 3.0 * xrot_idx;
+				camera.updateMVPMatrix();
+
+				// randomly sample N parameter values
+				for (int k = 0; k < numSamples; ++k) {
+					renderManager.removeObjects();
+
+					cga.randomParamValues(grammar);
+
+					// set axiom
+					cga::Rectangle* start = new cga::Rectangle("Start", "", glm::translate(glm::rotate(glm::mat4(), -3.141592f * 0.5f, glm::vec3(1, 0, 0)), glm::vec3(0, 0, 0)), glm::mat4(), 0, 0, glm::vec3(1, 1, 1));
+					cga.stack.push_back(boost::shared_ptr<cga::Shape>(start));
+
+					// generate 3d model
+					cga.derive(grammar, true);
+					std::vector<boost::shared_ptr<glutils::Face> > faces;
+					cga.generateGeometry(faces);
+					renderManager.addFaces(faces, true);
+
+					//renderManager.updateShadowMap(this, light_dir, light_mvpMatrix);
+
+					// render 2d image
+					render();
+					QImage img = grabFrameBuffer();
+					cv::Mat mat = cv::Mat(img.height(), img.width(), CV_8UC4, img.bits(), img.bytesPerLine()).clone();
+
+					// 画像を縮小
+					cv::resize(mat, mat, cv::Size(256, 256));
+					cv::threshold(mat, mat, 250, 255, CV_THRESH_BINARY);
+
+					// set filename
+					QString filename = resultDir + "/" + fileInfoList[i].baseName() + "/" + QString("image_%1.png").arg(count, 6, 10, QChar('0'));
+					cv::imwrite(filename.toUtf8().constData(), mat);
+
+					count++;
+				}
+
+			}
+		}
+	}
+
+	resize(origWidth, origHeight);
+	resizeGL(origWidth, origHeight);
 }
 
 void GLWidget3D::runMCMC(const std::string& cga_filename, const std::string& target_filename, int numIterations) {
@@ -698,7 +1015,8 @@ void GLWidget3D::runMCMC(const std::string& cga_filename, const std::string& tar
 void GLWidget3D::runMCMCAll(const std::string& cga_dir, int numIterations) {
 	QDir dir(cga_dir.c_str());
 	dir.setNameFilters(QStringList("*.xml"));
-	dir.setFilter(QDir::Files | QDir::NoDotAndDotDot | QDir::NoSymLinks);
+	dir.setFilter(QDir::Files | QDir::NoDotAndDotDot | QDir::NoSymLinks);
+
 	QStringList fileList = dir.entryList();
 	for (int i = 0; i < fileList.count(); ++i) {
 		renderManager.renderingMode = RenderManager::RENDERING_MODE_CONTOUR;
@@ -739,6 +1057,29 @@ void GLWidget3D::fixCamera() {
 	camera.pos = glm::vec3(0, 7.5, 40);
 	camera.updateMVPMatrix();
 
+	// photo 6
+	/*
+	camera.fovy = 52.0f;
+	camera.xrot = -14.0f;
+	camera.yrot = 43.0f;
+	camera.zrot = 0.0f;
+	camera.pos = glm::vec3(2, 4.6, 13);
+	camera.updateMVPMatrix();
+	*/
+
+	// 2016/3/21
+	camera.xrot = 20.0f;
+	camera.yrot = 30.0f;
+	camera.zrot = 0.0f;
+	camera.pos = glm::vec3(0, 10, 50);
+	camera.updateMVPMatrix();
+
+	// 2016/3/29
+	camera.xrot = 20.0f;
+	camera.yrot = 30.0f;
+	camera.zrot = 0.0f;
+	camera.pos = glm::vec3(0, 10, 70);
+	camera.updateMVPMatrix();
 }
 
 void GLWidget3D::keyPressEvent(QKeyEvent *e) {

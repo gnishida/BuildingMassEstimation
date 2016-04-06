@@ -19,10 +19,14 @@ public slots:
 	void onLoadCGA();
 	void onLoadImage();
 	void onSaveImage();
+	void onSaveContour();
 	void onResetCamera();
 	void onGenerateTrainingData();
+	void onGenerateTrainingDataWithAngleDelta();
+	void onGenerateTrainingDataWithDifferentAngles();
 	void onMCMC();
 	void onMCMCAll();
+	void onComputeVanishingPoints();
 	void onRenderingModeChanged();
 };
 

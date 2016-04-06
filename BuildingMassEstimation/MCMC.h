@@ -47,7 +47,8 @@ namespace mcmc {
 		void SGD(Chain& chain, int maxIterations, int refineInterval);
 		void runPT(int maxIterations);
 		QImage render(cga::Grammar& gramamr);
-		float evaluate(QImage& image);
+		float evaluate(QImage& image, cga::Grammar& grammar);
+		float alignCost(cga::Grammar& grammar);
 	};
 
 	float distance(const cv::Mat& distMap, const cv::Mat& targetDistMap, float alpha, float beta);
