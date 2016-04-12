@@ -44,6 +44,7 @@ public:
     QAction *actionContourVectors;
     QAction *actionGenerateTrainingDataWithoutAmbiguousViewpoints;
     QAction *actionGenerateTrainingDataWithFixedViewForRegression;
+    QAction *actionGenerateTrainingDataWithAngleDeltaForRegression;
     QWidget *centralWidget;
     QMenuBar *menuBar;
     QMenu *menuFile;
@@ -96,6 +97,8 @@ public:
         actionGenerateTrainingDataWithoutAmbiguousViewpoints->setObjectName(QStringLiteral("actionGenerateTrainingDataWithoutAmbiguousViewpoints"));
         actionGenerateTrainingDataWithFixedViewForRegression = new QAction(MainWindowClass);
         actionGenerateTrainingDataWithFixedViewForRegression->setObjectName(QStringLiteral("actionGenerateTrainingDataWithFixedViewForRegression"));
+        actionGenerateTrainingDataWithAngleDeltaForRegression = new QAction(MainWindowClass);
+        actionGenerateTrainingDataWithAngleDeltaForRegression->setObjectName(QStringLiteral("actionGenerateTrainingDataWithAngleDeltaForRegression"));
         centralWidget = new QWidget(MainWindowClass);
         centralWidget->setObjectName(QStringLiteral("centralWidget"));
         MainWindowClass->setCentralWidget(centralWidget);
@@ -128,10 +131,13 @@ public:
         menuFile->addSeparator();
         menuFile->addAction(actionExit);
         menuTool->addAction(actionGenerateTrainingDataWithFixedView);
-        menuTool->addAction(actionGenerateTrainingDataWithFixedViewForRegression);
         menuTool->addAction(actionGenerateTrainingDataWithAngleDelta);
         menuTool->addAction(actionGenerateTrainingDataWithArbitraryAngles);
         menuTool->addAction(actionGenerateTrainingDataWithoutAmbiguousViewpoints);
+        menuTool->addSeparator();
+        menuTool->addAction(actionGenerateTrainingDataWithFixedViewForRegression);
+        menuTool->addAction(actionGenerateTrainingDataWithAngleDeltaForRegression);
+        menuTool->addSeparator();
         menuTool->addAction(actionMCMC);
         menuTool->addAction(actionMCMCAll);
         menuTool->addSeparator();
@@ -170,6 +176,7 @@ public:
         actionContourVectors->setText(QApplication::translate("MainWindowClass", "Contour Vectors", 0));
         actionGenerateTrainingDataWithoutAmbiguousViewpoints->setText(QApplication::translate("MainWindowClass", "Generate Training Data Without Ambiguous Viewpoints", 0));
         actionGenerateTrainingDataWithFixedViewForRegression->setText(QApplication::translate("MainWindowClass", "Generate Training Data With Fixed View For Regression", 0));
+        actionGenerateTrainingDataWithAngleDeltaForRegression->setText(QApplication::translate("MainWindowClass", "Generate Training Data With Angle Delta For Regression", 0));
         menuFile->setTitle(QApplication::translate("MainWindowClass", "File", 0));
         menuTool->setTitle(QApplication::translate("MainWindowClass", "Tool", 0));
         menuRendering->setTitle(QApplication::translate("MainWindowClass", "Rendering", 0));

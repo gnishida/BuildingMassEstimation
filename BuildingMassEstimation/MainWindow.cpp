@@ -18,10 +18,11 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
 	connect(ui.actionResetCamera, SIGNAL(triggered()), this, SLOT(onResetCamera()));
 	connect(ui.actionExit, SIGNAL(triggered()), this, SLOT(close()));
 	connect(ui.actionGenerateTrainingDataWithFixedView, SIGNAL(triggered()), this, SLOT(onGenerateTrainingDataWithFixedView()));
-	connect(ui.actionGenerateTrainingDataWithFixedViewForRegression, SIGNAL(triggered()), this, SLOT(onGenerateTrainingDataWithFixedViewForRegression()));
 	connect(ui.actionGenerateTrainingDataWithAngleDelta, SIGNAL(triggered()), this, SLOT(onGenerateTrainingDataWithAngleDelta()));
 	connect(ui.actionGenerateTrainingDataWithArbitraryAngles, SIGNAL(triggered()), this, SLOT(onGenerateTrainingDataWithArbitraryAngles()));
 	connect(ui.actionGenerateTrainingDataWithoutAmbiguousViewpoints, SIGNAL(triggered()), this, SLOT(onGenerateTrainingDataWithoutAmgiousViewpoints()));
+	connect(ui.actionGenerateTrainingDataWithFixedViewForRegression, SIGNAL(triggered()), this, SLOT(onGenerateTrainingDataWithFixedViewForRegression()));
+	connect(ui.actionGenerateTrainingDataWithAngleDeltaForRegression, SIGNAL(triggered()), this, SLOT(onGenerateTrainingDataWithAngleDeltaForRegression()));
 	connect(ui.actionMCMC, SIGNAL(triggered()), this, SLOT(onMCMC()));
 	connect(ui.actionMCMCAll, SIGNAL(triggered()), this, SLOT(onMCMCAll()));
 	connect(ui.actionComputeVanishingPoints, SIGNAL(triggered()), this, SLOT(onComputeVanishingPoints()));
@@ -72,10 +73,6 @@ void MainWindow::onGenerateTrainingDataWithFixedView() {
 	glWidget3D->generateTrainingDataWithFixedView();
 }
 
-void MainWindow::onGenerateTrainingDataWithFixedViewForRegression() {
-	glWidget3D->generateTrainingDataWithFixedViewForRegression(10000, 128, 128);
-}
-
 void MainWindow::onGenerateTrainingDataWithAngleDelta() {
 	//glWidget3D->generateTrainingDataWithAngleDelta(5, 10);
 	glWidget3D->generateTrainingDataWithAngleDelta(10, 20);
@@ -87,6 +84,14 @@ void MainWindow::onGenerateTrainingDataWithArbitraryAngles() {
 
 void MainWindow::onGenerateTrainingDataWithoutAmgiousViewpoints() {
 	glWidget3D->generateTrainingDataWithoutAmgiousViewpoints();
+}
+
+void MainWindow::onGenerateTrainingDataWithFixedViewForRegression() {
+	glWidget3D->generateTrainingDataWithFixedViewForRegression(10000, 128, 128);
+}
+
+void MainWindow::onGenerateTrainingDataWithAngleDeltaForRegression() {
+	glWidget3D->generateTrainingDataWithAngleDeltaForRegression(100, 128, 128, 20, 20);
 }
 
 void MainWindow::onMCMC() {
