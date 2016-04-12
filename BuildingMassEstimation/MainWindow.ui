@@ -40,13 +40,17 @@
     <property name="title">
      <string>Tool</string>
     </property>
-    <addaction name="actionGenerateTrainingData"/>
+    <addaction name="actionGenerateTrainingDataWithFixedView"/>
+    <addaction name="actionGenerateTrainingDataWithFixedViewForRegression"/>
     <addaction name="actionGenerateTrainingDataWithAngleDelta"/>
-    <addaction name="actionGenerateTrainingDataWithDifferentAngles"/>
+    <addaction name="actionGenerateTrainingDataWithArbitraryAngles"/>
+    <addaction name="actionGenerateTrainingDataWithoutAmbiguousViewpoints"/>
     <addaction name="actionMCMC"/>
     <addaction name="actionMCMCAll"/>
     <addaction name="separator"/>
     <addaction name="actionComputeVanishingPoints"/>
+    <addaction name="separator"/>
+    <addaction name="actionContourVectors"/>
    </widget>
    <widget class="QMenu" name="menuRendering">
     <property name="title">
@@ -74,9 +78,9 @@
     <string>Exit</string>
    </property>
   </action>
-  <action name="actionGenerateTrainingData">
+  <action name="actionGenerateTrainingDataWithFixedView">
    <property name="text">
-    <string>Generate Training Data</string>
+    <string>Generate Training Data With Fixed View</string>
    </property>
   </action>
   <action name="actionMCMC">
@@ -149,14 +153,29 @@
     <string>Compute Vanishing Points</string>
    </property>
   </action>
-  <action name="actionGenerateTrainingDataWithDifferentAngles">
+  <action name="actionGenerateTrainingDataWithArbitraryAngles">
    <property name="text">
-    <string>Generate Training Data With Different Angles</string>
+    <string>Generate Training Data With Arbitrary Angles</string>
    </property>
   </action>
   <action name="actionGenerateTrainingDataWithAngleDelta">
    <property name="text">
     <string>Generate Training Data With Angle Delta</string>
+   </property>
+  </action>
+  <action name="actionContourVectors">
+   <property name="text">
+    <string>Contour Vectors</string>
+   </property>
+  </action>
+  <action name="actionGenerateTrainingDataWithoutAmbiguousViewpoints">
+   <property name="text">
+    <string>Generate Training Data Without Ambiguous Viewpoints</string>
+   </property>
+  </action>
+  <action name="actionGenerateTrainingDataWithFixedViewForRegression">
+   <property name="text">
+    <string>Generate Training Data With Fixed View For Regression</string>
    </property>
   </action>
  </widget>

@@ -27,7 +27,7 @@ class Ui_MainWindowClass
 {
 public:
     QAction *actionExit;
-    QAction *actionGenerateTrainingData;
+    QAction *actionGenerateTrainingDataWithFixedView;
     QAction *actionMCMC;
     QAction *actionSaveImage;
     QAction *actionRenderingBasic;
@@ -39,8 +39,11 @@ public:
     QAction *actionLoadImage;
     QAction *actionSaveContour;
     QAction *actionComputeVanishingPoints;
-    QAction *actionGenerateTrainingDataWithDifferentAngles;
+    QAction *actionGenerateTrainingDataWithArbitraryAngles;
     QAction *actionGenerateTrainingDataWithAngleDelta;
+    QAction *actionContourVectors;
+    QAction *actionGenerateTrainingDataWithoutAmbiguousViewpoints;
+    QAction *actionGenerateTrainingDataWithFixedViewForRegression;
     QWidget *centralWidget;
     QMenuBar *menuBar;
     QMenu *menuFile;
@@ -56,8 +59,8 @@ public:
         MainWindowClass->resize(1024, 800);
         actionExit = new QAction(MainWindowClass);
         actionExit->setObjectName(QStringLiteral("actionExit"));
-        actionGenerateTrainingData = new QAction(MainWindowClass);
-        actionGenerateTrainingData->setObjectName(QStringLiteral("actionGenerateTrainingData"));
+        actionGenerateTrainingDataWithFixedView = new QAction(MainWindowClass);
+        actionGenerateTrainingDataWithFixedView->setObjectName(QStringLiteral("actionGenerateTrainingDataWithFixedView"));
         actionMCMC = new QAction(MainWindowClass);
         actionMCMC->setObjectName(QStringLiteral("actionMCMC"));
         actionSaveImage = new QAction(MainWindowClass);
@@ -83,10 +86,16 @@ public:
         actionSaveContour->setObjectName(QStringLiteral("actionSaveContour"));
         actionComputeVanishingPoints = new QAction(MainWindowClass);
         actionComputeVanishingPoints->setObjectName(QStringLiteral("actionComputeVanishingPoints"));
-        actionGenerateTrainingDataWithDifferentAngles = new QAction(MainWindowClass);
-        actionGenerateTrainingDataWithDifferentAngles->setObjectName(QStringLiteral("actionGenerateTrainingDataWithDifferentAngles"));
+        actionGenerateTrainingDataWithArbitraryAngles = new QAction(MainWindowClass);
+        actionGenerateTrainingDataWithArbitraryAngles->setObjectName(QStringLiteral("actionGenerateTrainingDataWithArbitraryAngles"));
         actionGenerateTrainingDataWithAngleDelta = new QAction(MainWindowClass);
         actionGenerateTrainingDataWithAngleDelta->setObjectName(QStringLiteral("actionGenerateTrainingDataWithAngleDelta"));
+        actionContourVectors = new QAction(MainWindowClass);
+        actionContourVectors->setObjectName(QStringLiteral("actionContourVectors"));
+        actionGenerateTrainingDataWithoutAmbiguousViewpoints = new QAction(MainWindowClass);
+        actionGenerateTrainingDataWithoutAmbiguousViewpoints->setObjectName(QStringLiteral("actionGenerateTrainingDataWithoutAmbiguousViewpoints"));
+        actionGenerateTrainingDataWithFixedViewForRegression = new QAction(MainWindowClass);
+        actionGenerateTrainingDataWithFixedViewForRegression->setObjectName(QStringLiteral("actionGenerateTrainingDataWithFixedViewForRegression"));
         centralWidget = new QWidget(MainWindowClass);
         centralWidget->setObjectName(QStringLiteral("centralWidget"));
         MainWindowClass->setCentralWidget(centralWidget);
@@ -118,13 +127,17 @@ public:
         menuFile->addAction(actionResetCamera);
         menuFile->addSeparator();
         menuFile->addAction(actionExit);
-        menuTool->addAction(actionGenerateTrainingData);
+        menuTool->addAction(actionGenerateTrainingDataWithFixedView);
+        menuTool->addAction(actionGenerateTrainingDataWithFixedViewForRegression);
         menuTool->addAction(actionGenerateTrainingDataWithAngleDelta);
-        menuTool->addAction(actionGenerateTrainingDataWithDifferentAngles);
+        menuTool->addAction(actionGenerateTrainingDataWithArbitraryAngles);
+        menuTool->addAction(actionGenerateTrainingDataWithoutAmbiguousViewpoints);
         menuTool->addAction(actionMCMC);
         menuTool->addAction(actionMCMCAll);
         menuTool->addSeparator();
         menuTool->addAction(actionComputeVanishingPoints);
+        menuTool->addSeparator();
+        menuTool->addAction(actionContourVectors);
         menuRendering->addAction(actionRenderingBasic);
         menuRendering->addAction(actionRenderingLine);
         menuRendering->addAction(actionRenderingContour);
@@ -138,7 +151,7 @@ public:
     {
         MainWindowClass->setWindowTitle(QApplication::translate("MainWindowClass", "MainWindow", 0));
         actionExit->setText(QApplication::translate("MainWindowClass", "Exit", 0));
-        actionGenerateTrainingData->setText(QApplication::translate("MainWindowClass", "Generate Training Data", 0));
+        actionGenerateTrainingDataWithFixedView->setText(QApplication::translate("MainWindowClass", "Generate Training Data With Fixed View", 0));
         actionMCMC->setText(QApplication::translate("MainWindowClass", "MCMC", 0));
         actionSaveImage->setText(QApplication::translate("MainWindowClass", "Save Image", 0));
         actionSaveImage->setShortcut(QApplication::translate("MainWindowClass", "Ctrl+S", 0));
@@ -152,8 +165,11 @@ public:
         actionLoadImage->setText(QApplication::translate("MainWindowClass", "Load Image", 0));
         actionSaveContour->setText(QApplication::translate("MainWindowClass", "Save Contour", 0));
         actionComputeVanishingPoints->setText(QApplication::translate("MainWindowClass", "Compute Vanishing Points", 0));
-        actionGenerateTrainingDataWithDifferentAngles->setText(QApplication::translate("MainWindowClass", "Generate Training Data With Different Angles", 0));
+        actionGenerateTrainingDataWithArbitraryAngles->setText(QApplication::translate("MainWindowClass", "Generate Training Data With Arbitrary Angles", 0));
         actionGenerateTrainingDataWithAngleDelta->setText(QApplication::translate("MainWindowClass", "Generate Training Data With Angle Delta", 0));
+        actionContourVectors->setText(QApplication::translate("MainWindowClass", "Contour Vectors", 0));
+        actionGenerateTrainingDataWithoutAmbiguousViewpoints->setText(QApplication::translate("MainWindowClass", "Generate Training Data Without Ambiguous Viewpoints", 0));
+        actionGenerateTrainingDataWithFixedViewForRegression->setText(QApplication::translate("MainWindowClass", "Generate Training Data With Fixed View For Regression", 0));
         menuFile->setTitle(QApplication::translate("MainWindowClass", "File", 0));
         menuTool->setTitle(QApplication::translate("MainWindowClass", "Tool", 0));
         menuRendering->setTitle(QApplication::translate("MainWindowClass", "Rendering", 0));

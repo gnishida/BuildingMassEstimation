@@ -21,6 +21,61 @@
 #define	M_PI	3.141592653
 #endif
 
+
+ViewpointExample::ViewpointExample(const std::vector<float>& param_values, std::vector<std::pair<glm::vec2, glm::vec2>>& contour) {
+	this->param_values = param_values;
+	this->contour = contour;
+	this->ambiguous = false;
+}
+
+bool ViewpointExample::isSimilar(const ViewpointExample& other) {
+	if (contour.size() != other.contour.size()) return false;
+
+	// compute the bounding box
+	glutils::BoundingBox bbox1;
+	for (int i = 0; i < contour.size(); ++i) {
+		bbox1.addPoint(contour[i].first);
+	}
+	glutils::BoundingBox bbox2;
+	for (int i = 0; i < other.contour.size(); ++i) {
+		bbox2.addPoint(other.contour[i].first);
+	}
+
+	// compute the transform of the other to make it same size as bbox1
+	float scale_x = bbox1.sx() / bbox2.sx();
+	float scale_y = bbox1.sy() / bbox2.sy();
+	float trans_x = bbox1.minPt.x - bbox2.minPt.x * scale_x;
+	float trans_y = bbox1.minPt.y - bbox2.minPt.y * scale_y;
+
+	float min_diff = std::numeric_limits<float>::max();
+
+	for (int i = 0; i < other.contour.size(); ++i) {
+		float diff = 0.0f;
+
+		for (int k = 0; k < contour.size(); ++k) {
+			// compute the corresponding coordinates of the vertex of the other
+			glm::vec2 p2;
+			p2.x = other.contour.at((i + k) % contour.size()).first.x * scale_x + trans_x;
+			p2.y = other.contour.at((i + k) % contour.size()).first.y * scale_y + trans_y;
+
+			diff += glm::length(contour[k].first - p2);
+		}
+
+		if (diff < min_diff) {
+			min_diff = diff;
+		}
+	}
+
+	if (min_diff / contour.size() / bbox1.sx() < 0.09) return true;
+	else return false;
+}
+
+Viewpoint::Viewpoint(int snippet_id, const Camera& camera) {
+	this->snippet_id = snippet_id;
+	this->camera = camera;
+	this->ambiguous = false;
+}
+
 GLWidget3D::GLWidget3D(MainWindow *parent) : QGLWidget(QGLFormat(QGL::SampleBuffers)) {
 	this->mainWin = parent;
 	shiftPressed = false;
@@ -307,6 +362,75 @@ std::pair<glm::vec2, glm::vec2> GLWidget3D::getRightmostVLine(const std::vector<
 
 	return ret_line;
 }
+
+void GLWidget3D::extractContourVectors(std::vector<std::pair<glm::vec2, glm::vec2>>& edges) {
+	QImage img = this->grabFrameBuffer();
+	cv::Mat mat = cv::Mat(img.height(), img.width(), CV_8UC4, img.bits(), img.bytesPerLine()).clone();
+	cv::cvtColor(mat, mat, CV_BGRA2GRAY);
+
+#if 0
+	cv::imwrite("contour0.png", mat);
+#endif
+
+	cv::threshold(mat, mat, 128, 255, cv::THRESH_BINARY_INV);
+	
+	std::vector<cv::Vec4i> lines;
+	cv::HoughLinesP(mat, lines, 1, CV_PI / 180, 10, 10, 10);
+
+	// HoughLinesの結果を、edgesリストにコピー
+	edges.resize(lines.size());
+	for (int i = 0; i < lines.size(); ++i) {
+		edges[i].first = glm::vec2(lines[i][0], lines[i][1]);
+		edges[i].second = glm::vec2(lines[i][2], lines[i][3]);
+	}
+
+#if 0
+	cv::Mat result(mat.size(), CV_8UC3, cv::Scalar(255, 255, 255));
+	std::cout << "contour lines (" << edges.size() << "): " << std::endl;
+	for (int i = 0; i < edges.size(); ++i) {
+		std::cout << "(" << edges[i].first.x << "," << edges[i].first.y << ") - (" << edges[i].second.x << "," << edges[i].second.y << ")" << std::endl;
+		cv::Scalar color(rand() % 250, rand() % 250, rand() % 250);
+		cv::circle(result, cv::Point(edges[i].first.x, edges[i].first.y), 6, color, -1);
+		cv::circle(result, cv::Point(edges[i].second.x, edges[i].second.y), 6, color, -1);
+		cv::line(result, cv::Point(edges[i].first.x, edges[i].first.y), cv::Point(edges[i].second.x, edges[i].second.y), color, 2);
+	}
+	std::cout << std::endl;
+	cv::imwrite("contour.png", result);
+#endif
+
+	utils::cleanEdges(edges, 20, 5.0 / 180.0 * M_PI);
+#if 0
+	cv::Mat result2(mat.size(), CV_8UC3, cv::Scalar(255, 255, 255));
+	for (int i = 0; i < edges.size(); ++i) {
+		std::cout << "(" << edges[i].first.x << "," << edges[i].first.y << ") - (" << edges[i].second.x << "," << edges[i].second.y << ")" << std::endl;
+		cv::line(result2, cv::Point(edges[i].first.x, edges[i].first.y), cv::Point(edges[i].second.x, edges[i].second.y), cv::Scalar(rand() % 250, rand() % 250, rand() % 250), 3);
+	}
+	std::cout << std::endl;
+	cv::imwrite("contour2.png", result2);
+#endif
+
+	utils::cleanContours(edges, 80, 10.0 / 180.0 * M_PI);
+#if 0
+	cv::Mat result3(mat.size(), CV_8UC3, cv::Scalar(255, 255, 255));
+	for (int i = 0; i < edges.size(); ++i) {
+		std::cout << "(" << edges[i].first.x << "," << edges[i].first.y << ") - (" << edges[i].second.x << "," << edges[i].second.y << ")" << std::endl;
+		cv::Scalar color(rand() % 250, rand() % 250, rand() % 250);
+		cv::circle(result3, cv::Point(edges[i].first.x, edges[i].first.y), 6, color, -1);
+		cv::circle(result3, cv::Point(edges[i].second.x, edges[i].second.y), 6, color, -1);
+		cv::line(result3, cv::Point(edges[i].first.x, edges[i].first.y), cv::Point(edges[i].second.x, edges[i].second.y), color, 2);
+	}
+	std::cout << std::endl;
+	cv::imwrite("contour3.png", result3);
+#endif
+
+
+
+
+
+
+}
+
+
 
 /**
  * This event handler is called when the mouse press events occur.
@@ -749,7 +873,7 @@ void GLWidget3D::loadCGA(const std::string& cga_filename) {
 	render();
 }
 
-void GLWidget3D::generateTrainingData() {
+void GLWidget3D::generateTrainingDataWithFixedView() {
 	QString resultDir = "results/contours/";
 
 	if (QDir(resultDir).exists()) {
@@ -824,6 +948,105 @@ void GLWidget3D::generateTrainingData() {
 	resizeGL(origWidth, origHeight);
 }
 
+void GLWidget3D::generateTrainingDataWithFixedViewForRegression(int numSamples, int image_width, int image_height) {
+	QString resultDir = "results/contours/";
+
+	if (QDir(resultDir).exists()) {
+		QDir(resultDir).removeRecursively();
+	}
+	QDir().mkpath(resultDir);
+
+	srand(0);
+	renderManager.useShadow = false;
+	renderManager.renderingMode = RenderManager::RENDERING_MODE_CONTOUR;
+
+	int origWidth = width();
+	int origHeight = height();
+	resize(512, 512);
+	resizeGL(512, 512);
+
+	// fix camera view direction and position
+	fixCamera();
+
+	QDir dir("..\\cga\\mass_20160329\\");
+
+	QStringList filters;
+	filters << "*.xml";
+	QFileInfoList fileInfoList = dir.entryInfoList(filters, QDir::Files | QDir::NoDotAndDotDot);
+	for (int i = 0; i < fileInfoList.size(); ++i) {
+		int count = 0;
+
+		if (!QDir(resultDir + fileInfoList[i].baseName()).exists()) QDir().mkdir(resultDir + fileInfoList[i].baseName());
+
+		QFile file(resultDir + fileInfoList[i].baseName() + "/parameters.txt");
+		if (!file.open(QIODevice::WriteOnly)) {
+			std::cerr << "Cannot open file for writing: " << qPrintable(file.errorString()) << std::endl;
+			return;
+		}
+
+		QTextStream out(&file);
+
+		cga::CGA cga;
+
+		cga::Grammar grammar;
+		cga.modelMat = glm::rotate(glm::mat4(), -(float)M_PI * 0.5f, glm::vec3(1, 0, 0));
+		cga::parseGrammar(fileInfoList[i].absoluteFilePath().toUtf8().constData(), grammar);
+
+		for (int k = 0; k < numSamples; ++k) {
+			renderManager.removeObjects();
+
+			std::vector<float> param_values;
+			param_values = cga.randomParamValues(grammar);
+
+			// set axiom
+			cga::Rectangle* start = new cga::Rectangle("Start", "", glm::translate(glm::rotate(glm::mat4(), -3.141592f * 0.5f, glm::vec3(1, 0, 0)), glm::vec3(0, 0, 0)), glm::mat4(), 0, 0, glm::vec3(1, 1, 1));
+			cga.stack.push_back(boost::shared_ptr<cga::Shape>(start));
+
+			// generate 3d model
+			cga.derive(grammar, true);
+			std::vector<boost::shared_ptr<glutils::Face> > faces;
+			cga.generateGeometry(faces);
+			renderManager.addFaces(faces, true);
+
+			// render 2d image
+			render();
+			QImage img = grabFrameBuffer();
+			cv::Mat mat = cv::Mat(img.height(), img.width(), CV_8UC4, img.bits(), img.bytesPerLine()).clone();
+
+			// 画像を縮小
+			cv::resize(mat, mat, cv::Size(256, 256));
+			cv::threshold(mat, mat, 250, 255, CV_THRESH_BINARY);
+			if (image_width != 256 || image_height != 256) {
+				cv::resize(mat, mat, cv::Size(image_width, image_height));
+				cv::threshold(mat, mat, 250, 255, CV_THRESH_BINARY);
+			}
+
+			// grayscale
+			cv::cvtColor(mat, mat, CV_BGR2GRAY);
+
+			// set filename
+			QString filename = resultDir + "/" + fileInfoList[i].baseName() + "/" + QString("image_%1.png").arg(count, 6, 10, QChar('0'));
+			cv::imwrite(filename.toUtf8().constData(), mat);
+
+			// write all the param values to the file
+			for (int pi = 0; pi < param_values.size(); ++pi) {
+				if (pi > 0) {
+					out << ",";
+				}
+				out << param_values[pi];
+			}
+			out << "\n";
+
+			count++;
+		}
+
+		file.close();
+	}
+
+	resize(origWidth, origHeight);
+	resizeGL(origWidth, origHeight);
+}
+
 void GLWidget3D::generateTrainingDataWithAngleDelta(float xangle_delta, float yangle_delta) {
 	QString resultDir = "results/contours/";
 
@@ -861,11 +1084,11 @@ void GLWidget3D::generateTrainingDataWithAngleDelta(float xangle_delta, float ya
 		cga.modelMat = glm::rotate(glm::mat4(), -(float)M_PI * 0.5f, glm::vec3(1, 0, 0));
 		cga::parseGrammar(fileInfoList[i].absoluteFilePath().toUtf8().constData(), grammar);
 
-		// rotate the camera around y axis within [-70, 70]
+		// rotate the camera around y axis within [30 - yangle_delta/2, 30 + yangle_delta/2]
 		for (int yrot_idx = 0; yrot_idx <= 4; ++yrot_idx) {
 			camera.yrot = 30 - yangle_delta * 0.5 + yangle_delta / 4 * yrot_idx;
 
-			// rotate the camera around x axis within [0, 30]
+			// rotate the camera around x axis within [20 - xangle_delta/2, 20 + xangle_delta/2]
 			for (int xrot_idx = 0; xrot_idx <= 4; ++xrot_idx) {
 				camera.xrot = 20 - xangle_delta * 0.5 + xangle_delta / 4 * xrot_idx;
 				camera.updateMVPMatrix();
@@ -912,7 +1135,7 @@ void GLWidget3D::generateTrainingDataWithAngleDelta(float xangle_delta, float ya
 	resizeGL(origWidth, origHeight);
 }
 
-void GLWidget3D::generateTrainingDataWithDifferentAngles() {
+void GLWidget3D::generateTrainingDataWithArbitraryAngles() {
 	QString resultDir = "results/contours/";
 
 	if (QDir(resultDir).exists()) {
@@ -1000,6 +1223,253 @@ void GLWidget3D::generateTrainingDataWithDifferentAngles() {
 	resizeGL(origWidth, origHeight);
 }
 
+void GLWidget3D::generateTrainingDataWithoutAmgiousViewpoints() {
+	QString resultDir = "results/contours/";
+
+	if (QDir(resultDir).exists()) {
+		QDir(resultDir).removeRecursively();
+	}
+	QDir().mkpath(resultDir);
+
+	srand(0);
+	renderManager.useShadow = false;
+	renderManager.renderingMode = RenderManager::RENDERING_MODE_CONTOUR;
+
+	int origWidth = width();
+	int origHeight = height();
+	resize(512, 512);
+	resizeGL(512, 512);
+
+	// 各snippet, viewpointについて、good/badを保存する
+	std::vector<std::vector<Viewpoint>> viewpoints;
+
+	// fix camera view direction and position
+	fixCamera();
+
+	QDir dir("..\\cga\\mass_20160329\\");
+
+	std::vector<cga::Grammar> grammars;
+
+	int numSamples = 100;
+	QStringList filters;
+	filters << "*.xml";
+	QFileInfoList fileInfoList = dir.entryInfoList(filters, QDir::Files | QDir::NoDotAndDotDot);
+	
+	std::cout << "Extracting contour lines..." << std::endl;
+	for (int i = 0; i < fileInfoList.size(); ++i) {
+		viewpoints.push_back(std::vector<Viewpoint>());
+
+		cga::CGA cga;
+
+		cga::Grammar grammar;
+		cga.modelMat = glm::rotate(glm::mat4(), -(float)M_PI * 0.5f, glm::vec3(1, 0, 0));
+		cga::parseGrammar(fileInfoList[i].absoluteFilePath().toUtf8().constData(), grammar);
+		grammars.push_back(grammar);
+
+		// rotate the camera around y axis within [-70, 70]
+		for (int yrot_idx = 0; yrot_idx <= 10; ++yrot_idx) {
+			camera.yrot = 140 / 10.0 * yrot_idx - 70;
+
+			// rotate the camera around x axis within [0, 30]
+			for (int xrot_idx = 0; xrot_idx <= 3; ++xrot_idx) {
+				camera.xrot = 30 / 3.0 * xrot_idx;
+				camera.updateMVPMatrix();
+
+				viewpoints.back().push_back(Viewpoint(i, camera));
+
+				// randomly sample N parameter values
+				for (int k = 0; k < numSamples; ++k) {
+					renderManager.removeObjects();
+
+					std::vector<float> param_values = cga.randomParamValues(grammar);
+
+					// set axiom
+					cga::Rectangle* start = new cga::Rectangle("Start", "", glm::translate(glm::rotate(glm::mat4(), -3.141592f * 0.5f, glm::vec3(1, 0, 0)), glm::vec3(0, 0, 0)), glm::mat4(), 0, 0, glm::vec3(1, 1, 1));
+					cga.stack.push_back(boost::shared_ptr<cga::Shape>(start));
+
+					// generate 3d model
+					cga.derive(grammar, true);
+					std::vector<boost::shared_ptr<glutils::Face> > faces;
+					cga.generateGeometry(faces);
+					renderManager.addFaces(faces, true);
+
+					//renderManager.updateShadowMap(this, light_dir, light_mvpMatrix);
+
+					// render 2d image
+					render();
+
+					// extract contour edges
+					std::vector<std::pair<glm::vec2, glm::vec2>> contour;
+					extractContourVectors(contour);
+
+					viewpoints.back().back().examples.push_back(ViewpointExample(param_values, contour));
+				}
+			}
+		}
+	}
+	std::cout << "Done." << std::endl;
+
+	// check the ambiguity
+	int xx_count = 0;
+
+	std::cout << "Checking ambiguous cases..." << std::endl;
+	for (int i = 0; i < viewpoints.size(); ++i) {
+		for (int j = 0; j < viewpoints[i].size(); ++j) {
+			for (int k = 0; k < viewpoints[i][j].examples.size(); ++k) {
+
+				for (int i2 = 0; i2 < viewpoints.size(); ++i2) {
+					if (i2 == i) continue;
+
+					for (int j2 = 0; j2 < viewpoints[i2].size(); ++j2) {
+						if (viewpoints[i][j].ambiguous && viewpoints[i2][j2].ambiguous) continue;
+
+						int ambigous_count = 0;
+						for (int k2 = 0; k2 < viewpoints[i2][j2].examples.size(); ++k2) {
+
+							////////////////////////////////// DEBUG //////////////////////////////////////
+							/*
+							cv::Mat img1(height(), width(), CV_8UC3, cv::Scalar(255, 255, 255));
+							for (int p = 0; p < viewpoints[i][j].examples[k].contour.size(); ++p) {
+								cv::line(img1, cv::Point(viewpoints[i][j].examples[k].contour[p].first.x, viewpoints[i][j].examples[k].contour[p].first.y), cv::Point(viewpoints[i][j].examples[k].contour[p].second.x, viewpoints[i][j].examples[k].contour[p].second.y), cv::Scalar(rand() % 200, rand() % 200, rand() % 200), 3);
+							}
+							cv::imwrite("image1.png", img1);
+							cv::Mat img2(height(), width(), CV_8UC3, cv::Scalar(255, 255, 255));
+							for (int p = 0; p < viewpoints[i2][j2].examples[k2].contour.size(); ++p) {
+								cv::line(img2, cv::Point(viewpoints[i2][j2].examples[k2].contour[p].first.x, viewpoints[i2][j2].examples[k2].contour[p].first.y), cv::Point(viewpoints[i2][j2].examples[k2].contour[p].second.x, viewpoints[i2][j2].examples[k2].contour[p].second.y), cv::Scalar(rand() % 200, rand() % 200, rand() % 200), 3);
+							}
+							cv::imwrite("image2.png", img2);
+							*/
+							////////////////////////////////// DEBUG //////////////////////////////////////
+
+
+							if (viewpoints[i][j].examples[k].isSimilar(viewpoints[i2][j2].examples[k2])) {
+								////////////////////////////////// DEBUG //////////////////////////////////////
+								/*
+								std::cout << "Amibigous:" << std::endl;
+								std::cout << "Snippet: " << i << ", xrot=" << viewpoints[i][j].camera.xrot << ", yrot=" << viewpoints[i][j].camera.yrot << std::endl;
+								std::cout << "Snippet: " << i2 << ", xrot=" << viewpoints[i2][j2].camera.xrot << ", yrot=" << viewpoints[i2][j2].camera.yrot << std::endl;
+								std::cout << std::endl;
+
+								cv::Mat img1(height(), width(), CV_8UC3, cv::Scalar(255, 255, 255));
+								for (int p = 0; p < viewpoints[i][j].examples[k].contour.size(); ++p) {
+									cv::line(img1, cv::Point(viewpoints[i][j].examples[k].contour[p].first.x, viewpoints[i][j].examples[k].contour[p].first.y), cv::Point(viewpoints[i][j].examples[k].contour[p].second.x, viewpoints[i][j].examples[k].contour[p].second.y), cv::Scalar(rand() % 200, rand() % 200, rand() % 200), 3);
+								}
+								QString n = QString("results/image_%1_1.png").arg(xx_count);
+								cv::imwrite(n.toUtf8().constData(), img1);
+								cv::Mat img2(height(), width(), CV_8UC3, cv::Scalar(255, 255, 255));
+								for (int p = 0; p < viewpoints[i2][j2].examples[k2].contour.size(); ++p) {
+									cv::line(img2, cv::Point(viewpoints[i2][j2].examples[k2].contour[p].first.x, viewpoints[i2][j2].examples[k2].contour[p].first.y), cv::Point(viewpoints[i2][j2].examples[k2].contour[p].second.x, viewpoints[i2][j2].examples[k2].contour[p].second.y), cv::Scalar(rand() % 200, rand() % 200, rand() % 200), 3);
+								}
+								n = QString("results/image_%1_2.png").arg(xx_count++);
+								cv::imwrite(n.toUtf8().constData(), img2);
+								*/
+								////////////////////////////////// DEBUG //////////////////////////////////////
+
+								viewpoints[i][j].examples[k].ambiguous = true;
+								viewpoints[i2][j2].examples[k2].ambiguous = true;
+
+								ambigous_count++;
+							}
+						}
+
+						if (ambigous_count > viewpoints[i2][j2].examples.size() * 0.5f) {
+							viewpoints[i][j].ambiguous = true;
+							viewpoints[i2][j2].ambiguous = true;
+						}
+					}
+				}
+			}
+		}
+	}
+	std::cout << "Done." << std::endl;
+
+	// augumenting training images
+	std::cout << "Augmenting training images..." << std::endl;
+	for (int i = 0; i < viewpoints.size(); ++i) {
+		int count = 0;
+		for (int j = 0; j < viewpoints[i].size(); ++j) {
+			for (int k = 0; k < viewpoints[i][j].examples.size(); ++k) {
+				if (!viewpoints[i][j].examples[k].ambiguous) count++;
+			}
+		}
+
+		if (count >= 224) continue;
+
+		for (int loop = 0; loop < 300 - count; ++loop) {
+			int viewpoint_idx = rand() % viewpoints[i].size();
+			int example_idx = rand() % viewpoints[i][viewpoint_idx].examples.size();
+
+			std::vector<float> param_values = viewpoints[i][viewpoint_idx].examples[example_idx].param_values;
+			for (int k = 0; k < param_values.size(); ++k) {
+				float val = param_values[k] + utils::genRand(-0.1, 0.1);
+				val = std::min(1.0f, std::max(0.0f, val));
+
+				param_values[k] = val;
+			}
+
+			viewpoints[i][viewpoint_idx].examples.push_back(ViewpointExample(param_values, viewpoints[i][viewpoint_idx].examples[example_idx].contour));
+		}
+	}
+
+	// generate training images
+	std::cout << "Generating training images..." << std::endl;
+	for (int i = 0; i < viewpoints.size(); ++i) {
+		if (!QDir(resultDir + fileInfoList[i].baseName()).exists()) QDir().mkdir(resultDir + fileInfoList[i].baseName());
+
+		int count = 0;
+
+		for (int j = 0; j < viewpoints[i].size(); ++j) {
+			//if (viewpoints[i][j].ambiguous) continue;
+
+			camera = viewpoints[i][j].camera;
+			camera.updateMVPMatrix();
+
+			for (int k = 0; k < viewpoints[i][j].examples.size(); ++k) {
+				if (viewpoints[i][j].examples[k].ambiguous) continue;
+
+				cga::CGA cga;
+				cga.modelMat = glm::rotate(glm::mat4(), -(float)M_PI * 0.5f, glm::vec3(1, 0, 0));
+
+				renderManager.removeObjects();
+
+				// set parameter values
+				cga.setParamValues(grammars[i], viewpoints[i][j].examples[k].param_values);
+
+				// set axiom
+				cga::Rectangle* start = new cga::Rectangle("Start", "", glm::translate(glm::rotate(glm::mat4(), -3.141592f * 0.5f, glm::vec3(1, 0, 0)), glm::vec3(0, 0, 0)), glm::mat4(), 0, 0, glm::vec3(1, 1, 1));
+				cga.stack.push_back(boost::shared_ptr<cga::Shape>(start));
+
+				// generate 3d model
+				cga.derive(grammars[i], true);
+				std::vector<boost::shared_ptr<glutils::Face> > faces;
+				cga.generateGeometry(faces);
+				renderManager.addFaces(faces, true);
+
+				// render 2d image
+				render();
+
+				QImage img = grabFrameBuffer();
+				cv::Mat mat = cv::Mat(img.height(), img.width(), CV_8UC4, img.bits(), img.bytesPerLine()).clone();
+
+				// 画像を縮小
+				cv::resize(mat, mat, cv::Size(256, 256));
+				cv::threshold(mat, mat, 250, 255, CV_THRESH_BINARY);
+
+				// set filename
+				QString filename = resultDir + "/" + fileInfoList[i].baseName() + "/" + QString("image_%1.png").arg(count, 6, 10, QChar('0'));
+				cv::imwrite(filename.toUtf8().constData(), mat);
+
+				count++;
+			}
+		}
+	}
+	std::cout << "Done." << std::endl;
+
+	resize(origWidth, origHeight);
+	resizeGL(origWidth, origHeight);
+
+}
+
 void GLWidget3D::runMCMC(const std::string& cga_filename, const std::string& target_filename, int numIterations) {
 	fixCamera();
 
@@ -1074,12 +1544,21 @@ void GLWidget3D::fixCamera() {
 	camera.pos = glm::vec3(0, 10, 50);
 	camera.updateMVPMatrix();
 
-	// 2016/3/29
+	// good viewpoint 2016/3/29
 	camera.xrot = 20.0f;
 	camera.yrot = 30.0f;
 	camera.zrot = 0.0f;
 	camera.pos = glm::vec3(0, 10, 70);
 	camera.updateMVPMatrix();
+
+	// poor viewpoint 2016/4/7
+	/*
+	camera.xrot = 0.0f;
+	camera.yrot = 0.0f;
+	camera.zrot = 0.0f;
+	camera.pos = glm::vec3(0, 10, 70);
+	camera.updateMVPMatrix();
+	*/
 }
 
 void GLWidget3D::keyPressEvent(QKeyEvent *e) {

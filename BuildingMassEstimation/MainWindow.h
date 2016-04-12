@@ -21,12 +21,15 @@ public slots:
 	void onSaveImage();
 	void onSaveContour();
 	void onResetCamera();
-	void onGenerateTrainingData();
+	void onGenerateTrainingDataWithFixedView();
+	void onGenerateTrainingDataWithFixedViewForRegression();
 	void onGenerateTrainingDataWithAngleDelta();
-	void onGenerateTrainingDataWithDifferentAngles();
+	void onGenerateTrainingDataWithArbitraryAngles();
+	void onGenerateTrainingDataWithoutAmgiousViewpoints();
 	void onMCMC();
 	void onMCMCAll();
 	void onComputeVanishingPoints();
+	void onContourVectors();
 	void onRenderingModeChanged();
 };
 

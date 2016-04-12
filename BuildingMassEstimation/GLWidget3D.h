@@ -15,6 +15,31 @@
 
 class MainWindow;
 
+class ViewpointExample {
+public:
+	std::vector<float> param_values;
+	std::vector<std::pair<glm::vec2, glm::vec2>> contour;
+	bool ambiguous;
+
+public:
+	ViewpointExample(const std::vector<float>& param_values, std::vector<std::pair<glm::vec2, glm::vec2>>& contour);
+
+	bool isSimilar(const ViewpointExample& other);
+};
+
+class Viewpoint {
+public:
+	int snippet_id;
+	Camera camera;
+	bool ambiguous;
+	std::vector<ViewpointExample> examples;
+
+public:
+	Viewpoint(int snippet_id, const Camera& camera);
+
+	//bool isSimilar(const Viewpoint& other);
+};
+
 class GLWidget3D : public QGLWidget {
 public:
 	GLWidget3D(MainWindow *parent = 0);
@@ -27,6 +52,7 @@ public:
 	cv::Mat extractCameraIntrinsicParameters(std::vector<glm::vec2>& vp);
 	cv::Mat extractCameraExtrinsicParameters(std::vector<glm::vec2>& vp, const cv::Mat& K);
 	std::vector<glm::vec2> computeVanishingPoints(const std::vector<std::pair<glm::vec2, glm::vec2> >& v_lines);
+	void extractContourVectors(std::vector<std::pair<glm::vec2, glm::vec2>>& edges);
 	std::vector<std::pair<glm::vec2, glm::vec2> > getLeftmostHLines(const std::vector<std::pair<glm::vec2, glm::vec2> >& lines);
 	std::vector<std::pair<glm::vec2, glm::vec2> > getRightmostHLines(const std::vector<std::pair<glm::vec2, glm::vec2> >& lines);
 	std::pair<glm::vec2, glm::vec2> getLeftmostVLine(const std::vector<std::pair<glm::vec2, glm::vec2> >& lines);
@@ -34,9 +60,11 @@ public:
 	void drawScene();
 	void render();
 	void loadCGA(const std::string& cga_filename);
-	void generateTrainingData();
+	void generateTrainingDataWithFixedView();
+	void generateTrainingDataWithFixedViewForRegression(int numSamples, int image_width, int image_height);
 	void generateTrainingDataWithAngleDelta(float xangle_delta, float yangle_delta);
-	void generateTrainingDataWithDifferentAngles();
+	void generateTrainingDataWithArbitraryAngles();
+	void generateTrainingDataWithoutAmgiousViewpoints();
 	void runMCMC(const std::string& cga_filename, const std::string& target_filename, int numIterations);
 	void runMCMCAll(const std::string& cga_dir, int numIterations);
 	void fixCamera();

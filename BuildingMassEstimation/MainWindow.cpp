@@ -17,12 +17,15 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
 	connect(ui.actionSaveContour, SIGNAL(triggered()), this, SLOT(onSaveContour()));
 	connect(ui.actionResetCamera, SIGNAL(triggered()), this, SLOT(onResetCamera()));
 	connect(ui.actionExit, SIGNAL(triggered()), this, SLOT(close()));
-	connect(ui.actionGenerateTrainingData, SIGNAL(triggered()), this, SLOT(onGenerateTrainingData()));
+	connect(ui.actionGenerateTrainingDataWithFixedView, SIGNAL(triggered()), this, SLOT(onGenerateTrainingDataWithFixedView()));
+	connect(ui.actionGenerateTrainingDataWithFixedViewForRegression, SIGNAL(triggered()), this, SLOT(onGenerateTrainingDataWithFixedViewForRegression()));
 	connect(ui.actionGenerateTrainingDataWithAngleDelta, SIGNAL(triggered()), this, SLOT(onGenerateTrainingDataWithAngleDelta()));
-	connect(ui.actionGenerateTrainingDataWithDifferentAngles, SIGNAL(triggered()), this, SLOT(onGenerateTrainingDataWithDifferentAngles()));
+	connect(ui.actionGenerateTrainingDataWithArbitraryAngles, SIGNAL(triggered()), this, SLOT(onGenerateTrainingDataWithArbitraryAngles()));
+	connect(ui.actionGenerateTrainingDataWithoutAmbiguousViewpoints, SIGNAL(triggered()), this, SLOT(onGenerateTrainingDataWithoutAmgiousViewpoints()));
 	connect(ui.actionMCMC, SIGNAL(triggered()), this, SLOT(onMCMC()));
 	connect(ui.actionMCMCAll, SIGNAL(triggered()), this, SLOT(onMCMCAll()));
 	connect(ui.actionComputeVanishingPoints, SIGNAL(triggered()), this, SLOT(onComputeVanishingPoints()));
+	connect(ui.actionContourVectors, SIGNAL(triggered()), this, SLOT(onContourVectors()));
 	connect(ui.actionRenderingBasic, SIGNAL(triggered()), this, SLOT(onRenderingModeChanged()));
 	connect(ui.actionRenderingLine, SIGNAL(triggered()), this, SLOT(onRenderingModeChanged()));
 	connect(ui.actionRenderingContour, SIGNAL(triggered()), this, SLOT(onRenderingModeChanged()));
@@ -65,16 +68,25 @@ void MainWindow::onResetCamera() {
 	glWidget3D->update();
 }
 
-void MainWindow::onGenerateTrainingData() {
-	glWidget3D->generateTrainingData();
+void MainWindow::onGenerateTrainingDataWithFixedView() {
+	glWidget3D->generateTrainingDataWithFixedView();
+}
+
+void MainWindow::onGenerateTrainingDataWithFixedViewForRegression() {
+	glWidget3D->generateTrainingDataWithFixedViewForRegression(10000, 128, 128);
 }
 
 void MainWindow::onGenerateTrainingDataWithAngleDelta() {
-	glWidget3D->generateTrainingDataWithAngleDelta(5, 10);
+	//glWidget3D->generateTrainingDataWithAngleDelta(5, 10);
+	glWidget3D->generateTrainingDataWithAngleDelta(10, 20);
 }
 
-void MainWindow::onGenerateTrainingDataWithDifferentAngles() {
-	glWidget3D->generateTrainingDataWithDifferentAngles();
+void MainWindow::onGenerateTrainingDataWithArbitraryAngles() {
+	glWidget3D->generateTrainingDataWithArbitraryAngles();
+}
+
+void MainWindow::onGenerateTrainingDataWithoutAmgiousViewpoints() {
+	glWidget3D->generateTrainingDataWithoutAmgiousViewpoints();
 }
 
 void MainWindow::onMCMC() {
@@ -93,6 +105,11 @@ void MainWindow::onMCMCAll() {
 
 void MainWindow::onComputeVanishingPoints() {
 	glWidget3D->extractCameraParameters();
+}
+
+void MainWindow::onContourVectors() {
+	std::vector<std::pair<glm::vec2, glm::vec2>> edges;
+	glWidget3D->extractContourVectors(edges);
 }
 
 void MainWindow::onRenderingModeChanged() {
