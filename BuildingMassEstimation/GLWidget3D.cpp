@@ -16,6 +16,7 @@
 #include "MCMCConfigDialog.h"
 #include <fstream>
 #include <opencv2/core.hpp>
+#include <QFileDialog>
 
 #ifndef M_PI
 #define	M_PI	3.141592653
@@ -1471,7 +1472,12 @@ void GLWidget3D::generateTrainingDataWithFixedViewForRegression(int numSamples, 
 }
 
 void GLWidget3D::generateTrainingDataWithAngleDeltaForRegression(int numSamples, int image_width, int image_height, float xangle_delta, float yangle_delta) {
-	QString resultDir = "results/contours/";
+	// get the directory where the training data will be stored
+	QString resultDir = QFileDialog::getExistingDirectory(this, tr("Open Directory"), ".", QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
+	if (resultDir.isEmpty()) return;
+	//QString resultDir = "results/contours/";
+
+	resultDir += "\\contours_grayscale\\";
 
 	if (QDir(resultDir).exists()) {
 		QDir(resultDir).removeRecursively();
@@ -1724,6 +1730,10 @@ void GLWidget3D::visualizePredictedDataWithCameraParameters(float xangle_delta, 
 	// fix camera view direction and position
 	fixCamera();
 
+	// get the directory where the training data is stored
+	QString dataset_dir = QFileDialog::getExistingDirectory(this, tr("Open Directory"),	".", QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
+	if (dataset_dir.isEmpty()) return;
+
 	for (int i = 1; i < 30; ++i) {
 		QFile predicted_results_file(QString("prediction\\predicted_results_%1.txt").arg(i));
 		if (!predicted_results_file.exists()) continue;
@@ -1735,7 +1745,7 @@ void GLWidget3D::visualizePredictedDataWithCameraParameters(float xangle_delta, 
 
 		// load ground truth parameter values
 		std::vector<std::vector<float>> true_param_values;
-		QFile true_file(QString("results\\contour_%1\\parameters.txt").arg(i, 2, 10, QChar('0')));
+		QFile true_file(QString(dataset_dir + "\\contour_%1\\parameters.txt").arg(i, 2, 10, QChar('0')));
 		if (!true_file.open(QIODevice::ReadOnly | QIODevice::Text)) return;
 		QTextStream in_true(&true_file);
 		while (true) {

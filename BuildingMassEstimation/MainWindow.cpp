@@ -93,7 +93,7 @@ void MainWindow::onGenerateTrainingDataWithFixedViewForRegression() {
 }
 
 void MainWindow::onGenerateTrainingDataWithAngleDeltaForRegression() {
-	glWidget3D->generateTrainingDataWithAngleDeltaForRegression(100, 128, 128, 20, 20);
+	glWidget3D->generateTrainingDataWithAngleDeltaForRegression(100, 128, 128, 40, 40);
 }
 
 void MainWindow::onVisualizePredictedData() {
@@ -101,7 +101,7 @@ void MainWindow::onVisualizePredictedData() {
 }
 
 void MainWindow::onVisualizePredictedDataWithCameraParameters() {
-	glWidget3D->visualizePredictedDataWithCameraParameters(20, 20);
+	glWidget3D->visualizePredictedDataWithCameraParameters(40, 40);
 }
 
 void MainWindow::onMCMC() {
