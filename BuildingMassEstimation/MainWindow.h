@@ -25,8 +25,6 @@ public slots:
 	void onGenerateTrainingDataWithAngleDelta();
 	void onGenerateTrainingDataWithArbitraryAngles();
 	void onGenerateTrainingDataWithoutAmgiousViewpoints();
-	void onGenerateTrainingDataWithFixedViewForRegression();
-	void onGenerateTrainingDataWithAngleDeltaForRegression();
 	void onVisualizePredictedData();
 	void onVisualizePredictedDataWithCameraParameters();
 	void onMCMC();

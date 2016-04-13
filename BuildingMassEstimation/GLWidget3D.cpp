@@ -874,8 +874,8 @@ void GLWidget3D::loadCGA(const std::string& cga_filename) {
 	render();
 }
 
-void GLWidget3D::generateTrainingDataWithFixedView() {
-	QString resultDir = "results/contours/";
+void GLWidget3D::generateTrainingDataWithFixedView(const QString& cga_dir, const QString& out_dir, int numSamples, int image_width, int image_height, bool grayscale, float xrot, float yrot) {
+	QString resultDir = out_dir + "\\contours\\";
 
 	if (QDir(resultDir).exists()) {
 		QDir(resultDir).removeRecursively();
@@ -893,10 +893,12 @@ void GLWidget3D::generateTrainingDataWithFixedView() {
 
 	// fix camera view direction and position
 	fixCamera();
+	camera.xrot = xrot;
+	camera.yrot = yrot;
+	camera.updateMVPMatrix();
 
-	QDir dir("..\\cga\\mass_20160329\\");
+	QDir dir(cga_dir);
 
-	int numSamples = 100;
 	QStringList filters;
 	filters << "*.xml";
 	QFileInfoList fileInfoList = dir.entryInfoList(filters, QDir::Files | QDir::NoDotAndDotDot);
@@ -904,7 +906,15 @@ void GLWidget3D::generateTrainingDataWithFixedView() {
 		int count = 0;
 
 		if (!QDir(resultDir + fileInfoList[i].baseName()).exists()) QDir().mkdir(resultDir + fileInfoList[i].baseName());
-		
+
+		QFile file(resultDir + fileInfoList[i].baseName() + "/parameters.txt");
+		if (!file.open(QIODevice::WriteOnly)) {
+			std::cerr << "Cannot open file for writing: " << qPrintable(file.errorString()) << std::endl;
+			return;
+		}
+
+		QTextStream out(&file);
+
 		cga::CGA cga;
 
 		cga::Grammar grammar;
@@ -914,7 +924,8 @@ void GLWidget3D::generateTrainingDataWithFixedView() {
 		for (int k = 0; k < numSamples; ++k) {
 			renderManager.removeObjects();
 
-			cga.randomParamValues(grammar);
+			std::vector<float> param_values;
+			param_values = cga.randomParamValues(grammar);
 
 			// set axiom
 			cga::Rectangle* start = new cga::Rectangle("Start", "", glm::translate(glm::rotate(glm::mat4(), -3.141592f * 0.5f, glm::vec3(1, 0, 0)), glm::vec3(0, 0, 0)), glm::mat4(), 0, 0, glm::vec3(1, 1, 1));
@@ -926,8 +937,6 @@ void GLWidget3D::generateTrainingDataWithFixedView() {
 			cga.generateGeometry(faces);
 			renderManager.addFaces(faces, true);
 
-			//renderManager.updateShadowMap(this, light_dir, light_mvpMatrix);
-
 			// render 2d image
 			render();
 			QImage img = grabFrameBuffer();
@@ -936,21 +945,42 @@ void GLWidget3D::generateTrainingDataWithFixedView() {
 			// 画像を縮小
 			cv::resize(mat, mat, cv::Size(256, 256));
 			cv::threshold(mat, mat, 250, 255, CV_THRESH_BINARY);
+			if (image_width != 256 || image_height != 256) {
+				cv::resize(mat, mat, cv::Size(image_width, image_height));
+				cv::threshold(mat, mat, 250, 255, CV_THRESH_BINARY);
+			}
+
+			// grayscale
+			if (grayscale) {
+				cv::cvtColor(mat, mat, CV_BGR2GRAY);
+			}
 
 			// set filename
 			QString filename = resultDir + "/" + fileInfoList[i].baseName() + "/" + QString("image_%1.png").arg(count, 6, 10, QChar('0'));
 			cv::imwrite(filename.toUtf8().constData(), mat);
 
+			// write all the param values to the file
+			for (int pi = 0; pi < param_values.size(); ++pi) {
+				if (pi > 0) {
+					out << ",";
+				}
+				out << param_values[pi];
+			}
+			out << "\n";
+
 			count++;
 		}
+
+		file.close();
 	}
 
 	resize(origWidth, origHeight);
 	resizeGL(origWidth, origHeight);
 }
 
-void GLWidget3D::generateTrainingDataWithAngleDelta(float xangle_delta, float yangle_delta) {
-	QString resultDir = "results/contours/";
+void GLWidget3D::generateTrainingDataWithAngleDelta(const QString& cga_dir, const QString& out_dir, int numSamples, int image_width, int image_height, bool grayscale, float xrotMean, float xrotRange, float yrotMean, float yrotRange) {
+	// get the directory where the training data will be stored
+	QString resultDir = out_dir + "\\contours\\";
 
 	if (QDir(resultDir).exists()) {
 		QDir(resultDir).removeRecursively();
@@ -969,9 +999,8 @@ void GLWidget3D::generateTrainingDataWithAngleDelta(float xangle_delta, float ya
 	// fix camera view direction and position
 	fixCamera();
 
-	QDir dir("..\\cga\\mass_20160329\\");
+	QDir dir(cga_dir);
 
-	int numSamples = 100;
 	QStringList filters;
 	filters << "*.xml";
 	QFileInfoList fileInfoList = dir.entryInfoList(filters, QDir::Files | QDir::NoDotAndDotDot);
@@ -980,6 +1009,14 @@ void GLWidget3D::generateTrainingDataWithAngleDelta(float xangle_delta, float ya
 
 		if (!QDir(resultDir + fileInfoList[i].baseName()).exists()) QDir().mkdir(resultDir + fileInfoList[i].baseName());
 
+		QFile file(resultDir + fileInfoList[i].baseName() + "/parameters.txt");
+		if (!file.open(QIODevice::WriteOnly)) {
+			std::cerr << "Cannot open file for writing: " << qPrintable(file.errorString()) << std::endl;
+			return;
+		}
+
+		QTextStream out(&file);
+
 		cga::CGA cga;
 
 		cga::Grammar grammar;
@@ -987,19 +1024,20 @@ void GLWidget3D::generateTrainingDataWithAngleDelta(float xangle_delta, float ya
 		cga::parseGrammar(fileInfoList[i].absoluteFilePath().toUtf8().constData(), grammar);
 
 		// rotate the camera around y axis within [30 - yangle_delta/2, 30 + yangle_delta/2]
-		for (int yrot_idx = 0; yrot_idx <= 4; ++yrot_idx) {
-			camera.yrot = 30 - yangle_delta * 0.5 + yangle_delta / 4 * yrot_idx;
+		for (int yrot = 0; yrot <= yrotRange; ++yrot) {
+			camera.yrot = yrotMean - yrotRange * 0.5 + yrot;
 
 			// rotate the camera around x axis within [20 - xangle_delta/2, 20 + xangle_delta/2]
-			for (int xrot_idx = 0; xrot_idx <= 4; ++xrot_idx) {
-				camera.xrot = 20 - xangle_delta * 0.5 + xangle_delta / 4 * xrot_idx;
+			for (int xrot = 0; xrot <= xrotRange; ++xrot) {
+				camera.xrot = xrotMean - xrotRange * 0.5 + xrot;
 				camera.updateMVPMatrix();
 
 				// randomly sample N parameter values
 				for (int k = 0; k < numSamples; ++k) {
 					renderManager.removeObjects();
 
-					cga.randomParamValues(grammar);
+					std::vector<float> param_values;
+					param_values = cga.randomParamValues(grammar);
 
 					// set axiom
 					cga::Rectangle* start = new cga::Rectangle("Start", "", glm::translate(glm::rotate(glm::mat4(), -3.141592f * 0.5f, glm::vec3(1, 0, 0)), glm::vec3(0, 0, 0)), glm::mat4(), 0, 0, glm::vec3(1, 1, 1));
@@ -1011,8 +1049,6 @@ void GLWidget3D::generateTrainingDataWithAngleDelta(float xangle_delta, float ya
 					cga.generateGeometry(faces);
 					renderManager.addFaces(faces, true);
 
-					//renderManager.updateShadowMap(this, light_dir, light_mvpMatrix);
-
 					// render 2d image
 					render();
 					QImage img = grabFrameBuffer();
@@ -1021,16 +1057,40 @@ void GLWidget3D::generateTrainingDataWithAngleDelta(float xangle_delta, float ya
 					// 画像を縮小
 					cv::resize(mat, mat, cv::Size(256, 256));
 					cv::threshold(mat, mat, 250, 255, CV_THRESH_BINARY);
+					if (image_width != 256 || image_height != 256) {
+						cv::resize(mat, mat, cv::Size(image_width, image_height));
+						cv::threshold(mat, mat, 250, 255, CV_THRESH_BINARY);
+					}
+
+					// grayscale
+					if (grayscale) {
+						cv::cvtColor(mat, mat, CV_BGR2GRAY);
+					}
 
 					// set filename
 					QString filename = resultDir + "/" + fileInfoList[i].baseName() + "/" + QString("image_%1.png").arg(count, 6, 10, QChar('0'));
 					cv::imwrite(filename.toUtf8().constData(), mat);
+
+					// add camera parameters to the params
+					param_values.insert(param_values.begin(), (float)yrot / yrotRange);
+					param_values.insert(param_values.begin(), (float)xrot / xrotRange);
+
+					// write all the param values [xrot, yrot, param1, param2, ...] to the file
+					for (int pi = 0; pi < param_values.size(); ++pi) {
+						if (pi > 0) {
+							out << ",";
+						}
+						out << param_values[pi];
+					}
+					out << "\n";
 
 					count++;
 				}
 
 			}
 		}
+
+		file.close();
 	}
 
 	resize(origWidth, origHeight);
@@ -1372,8 +1432,8 @@ void GLWidget3D::generateTrainingDataWithoutAmgiousViewpoints() {
 
 }
 
-void GLWidget3D::generateTrainingDataWithFixedViewForRegression(int numSamples, int image_width, int image_height) {
-	QString resultDir = "results/contours/";
+void GLWidget3D::generateTrainingDataWithFixedViewForRegression(const QString& cga_dir, const QString& out_dir, int numSamples, int image_width, int image_height, bool grayscale, float xrot, float yrot) {
+	QString resultDir = out_dir + "\\contours\\";
 
 	if (QDir(resultDir).exists()) {
 		QDir(resultDir).removeRecursively();
@@ -1391,8 +1451,11 @@ void GLWidget3D::generateTrainingDataWithFixedViewForRegression(int numSamples, 
 
 	// fix camera view direction and position
 	fixCamera();
+	camera.xrot = xrot;
+	camera.yrot = yrot;
+	camera.updateMVPMatrix();
 
-	QDir dir("..\\cga\\mass_20160329\\");
+	QDir dir(cga_dir);
 
 	QStringList filters;
 	filters << "*.xml";
@@ -1446,7 +1509,9 @@ void GLWidget3D::generateTrainingDataWithFixedViewForRegression(int numSamples, 
 			}
 
 			// grayscale
-			cv::cvtColor(mat, mat, CV_BGR2GRAY);
+			if (grayscale) {
+				cv::cvtColor(mat, mat, CV_BGR2GRAY);
+			}
 
 			// set filename
 			QString filename = resultDir + "/" + fileInfoList[i].baseName() + "/" + QString("image_%1.png").arg(count, 6, 10, QChar('0'));
@@ -1471,13 +1536,9 @@ void GLWidget3D::generateTrainingDataWithFixedViewForRegression(int numSamples, 
 	resizeGL(origWidth, origHeight);
 }
 
-void GLWidget3D::generateTrainingDataWithAngleDeltaForRegression(int numSamples, int image_width, int image_height, float xangle_delta, float yangle_delta) {
+void GLWidget3D::generateTrainingDataWithAngleDeltaForRegression(const QString& cga_dir, const QString& out_dir, int numSamples, int image_width, int image_height, bool grayscale, float xrotMean, float xrotRange, float yrotMean, float yrotRange) {
 	// get the directory where the training data will be stored
-	QString resultDir = QFileDialog::getExistingDirectory(this, tr("Open Directory"), ".", QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
-	if (resultDir.isEmpty()) return;
-	//QString resultDir = "results/contours/";
-
-	resultDir += "\\contours_grayscale\\";
+	QString resultDir = out_dir + "\\contours\\";
 
 	if (QDir(resultDir).exists()) {
 		QDir(resultDir).removeRecursively();
@@ -1496,7 +1557,7 @@ void GLWidget3D::generateTrainingDataWithAngleDeltaForRegression(int numSamples,
 	// fix camera view direction and position
 	fixCamera();
 
-	QDir dir("..\\cga\\mass_20160329\\");
+	QDir dir(cga_dir);
 
 	QStringList filters;
 	filters << "*.xml";
@@ -1521,12 +1582,12 @@ void GLWidget3D::generateTrainingDataWithAngleDeltaForRegression(int numSamples,
 		cga::parseGrammar(fileInfoList[i].absoluteFilePath().toUtf8().constData(), grammar);
 
 		// rotate the camera around y axis within [30 - yangle_delta/2, 30 + yangle_delta/2]
-		for (int yrot = 0; yrot <= yangle_delta; ++yrot) {
-			camera.yrot = 30 - yangle_delta * 0.5 + yrot;
+		for (int yrot = 0; yrot <= yrotRange; ++yrot) {
+			camera.yrot = yrotMean - yrotRange * 0.5 + yrot;
 
 			// rotate the camera around x axis within [20 - xangle_delta/2, 20 + xangle_delta/2]
-			for (int xrot = 0; xrot <= xangle_delta; ++xrot) {
-				camera.xrot = 20 - xangle_delta * 0.5 + xrot;
+			for (int xrot = 0; xrot <= xrotRange; ++xrot) {
+				camera.xrot = xrotMean - xrotRange * 0.5 + xrot;
 				camera.updateMVPMatrix();
 
 				// randomly sample N parameter values
@@ -1546,8 +1607,6 @@ void GLWidget3D::generateTrainingDataWithAngleDeltaForRegression(int numSamples,
 					cga.generateGeometry(faces);
 					renderManager.addFaces(faces, true);
 
-					//renderManager.updateShadowMap(this, light_dir, light_mvpMatrix);
-
 					// render 2d image
 					render();
 					QImage img = grabFrameBuffer();
@@ -1562,15 +1621,17 @@ void GLWidget3D::generateTrainingDataWithAngleDeltaForRegression(int numSamples,
 					}
 
 					// grayscale
-					cv::cvtColor(mat, mat, CV_BGR2GRAY);
+					if (grayscale) {
+						cv::cvtColor(mat, mat, CV_BGR2GRAY);
+					}
 					
 					// set filename
 					QString filename = resultDir + "/" + fileInfoList[i].baseName() + "/" + QString("image_%1.png").arg(count, 6, 10, QChar('0'));
 					cv::imwrite(filename.toUtf8().constData(), mat);
 
 					// add camera parameters to the params
-					param_values.insert(param_values.begin(), (float)yrot / yangle_delta);
-					param_values.insert(param_values.begin(), (float)xrot / xangle_delta);
+					param_values.insert(param_values.begin(), (float)yrot / yrotRange);
+					param_values.insert(param_values.begin(), (float)xrot / xrotRange);
 
 					// write all the param values [xrot, yrot, param1, param2, ...] to the file
 					for (int pi = 0; pi < param_values.size(); ++pi) {

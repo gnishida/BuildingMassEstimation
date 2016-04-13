@@ -60,12 +60,12 @@ public:
 	void drawScene();
 	void render();
 	void loadCGA(const std::string& cga_filename);
-	void generateTrainingDataWithFixedView();
-	void generateTrainingDataWithAngleDelta(float xangle_delta, float yangle_delta);
+	void generateTrainingDataWithFixedView(const QString& cga_dir, const QString& out_dir, int numSamples, int image_width, int image_height, bool grayscale, float xrot, float yrot);
+	void generateTrainingDataWithAngleDelta(const QString& cga_dir, const QString& out_dir, int numSamples, int image_width, int image_height, bool grayscale, float xrotMean, float xrotRange, float yrotMean, float yrotRange);
 	void generateTrainingDataWithArbitraryAngles();
 	void generateTrainingDataWithoutAmgiousViewpoints();
-	void generateTrainingDataWithFixedViewForRegression(int numSamples, int image_width, int image_height);
-	void generateTrainingDataWithAngleDeltaForRegression(int numSamples, int image_width, int image_height, float xangle_delta, float yangle_delta);
+	void generateTrainingDataWithFixedViewForRegression(const QString& cga_dir, const QString& out_dir, int numSamples, int image_width, int image_height, bool grayscale, float xrot, float yrot);
+	void generateTrainingDataWithAngleDeltaForRegression(const QString& cga_dir, const QString& out_dir, int numSamples, int image_width, int image_height, bool grayscale, float xrotMean, float xrotRange, float yrotMean, float yrotRange);
 	void visualizePredictedData();
 	void visualizePredictedDataWithCameraParameters(float xangle_delta, float yangle_delta);
 	void runMCMC(const std::string& cga_filename, const std::string& target_filename, int numIterations);

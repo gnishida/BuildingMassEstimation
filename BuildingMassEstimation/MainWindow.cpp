@@ -1,6 +1,7 @@
 #include "MainWindow.h"
 #include <QFileDialog>
 #include "MCMCConfigDialog.h"
+#include "TrainingDataGenerationDialog.h"
 
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
 	ui.setupUi(this);
@@ -21,8 +22,6 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
 	connect(ui.actionGenerateTrainingDataWithAngleDelta, SIGNAL(triggered()), this, SLOT(onGenerateTrainingDataWithAngleDelta()));
 	connect(ui.actionGenerateTrainingDataWithArbitraryAngles, SIGNAL(triggered()), this, SLOT(onGenerateTrainingDataWithArbitraryAngles()));
 	connect(ui.actionGenerateTrainingDataWithoutAmbiguousViewpoints, SIGNAL(triggered()), this, SLOT(onGenerateTrainingDataWithoutAmgiousViewpoints()));
-	connect(ui.actionGenerateTrainingDataWithFixedViewForRegression, SIGNAL(triggered()), this, SLOT(onGenerateTrainingDataWithFixedViewForRegression()));
-	connect(ui.actionGenerateTrainingDataWithAngleDeltaForRegression, SIGNAL(triggered()), this, SLOT(onGenerateTrainingDataWithAngleDeltaForRegression()));
 	connect(ui.actionVisualizePredictedData, SIGNAL(triggered()), this, SLOT(onVisualizePredictedData()));
 	connect(ui.actionVisualizePredictedDataWithCameraParameters, SIGNAL(triggered()), this, SLOT(onVisualizePredictedDataWithCameraParameters()));
 	connect(ui.actionMCMC, SIGNAL(triggered()), this, SLOT(onMCMC()));
@@ -72,12 +71,41 @@ void MainWindow::onResetCamera() {
 }
 
 void MainWindow::onGenerateTrainingDataWithFixedView() {
-	glWidget3D->generateTrainingDataWithFixedView();
+	TrainingDataGenerationDialog dlg;
+	dlg.ui.lineEditXrotRange->setEnabled(false);
+	dlg.ui.lineEditYrotRange->setEnabled(false);
+	if (dlg.exec() && !dlg.ui.lineEditCGADirectory->text().isEmpty() && !dlg.ui.lineEditOutputDirectory->text().isEmpty()) {
+		int numSamples = dlg.ui.lineEditNumSamples->text().toInt();
+		int imageWidth = dlg.ui.lineEditImageWidth->text().toInt();
+		int imageHeight = dlg.ui.lineEditImageHeight->text().toInt();
+		bool grayscale = false;
+		if (dlg.ui.checkBoxGrayscale->isChecked()) {
+			grayscale = true;
+		}
+		float xrot = dlg.ui.lineEditXrot->text().toFloat();
+		float yrot = dlg.ui.lineEditYrot->text().toFloat();
+
+		glWidget3D->generateTrainingDataWithFixedView(dlg.ui.lineEditCGADirectory->text(), dlg.ui.lineEditOutputDirectory->text(), numSamples, imageWidth, imageHeight, grayscale, xrot, yrot);
+	}
 }
 
 void MainWindow::onGenerateTrainingDataWithAngleDelta() {
-	//glWidget3D->generateTrainingDataWithAngleDelta(5, 10);
-	glWidget3D->generateTrainingDataWithAngleDelta(10, 20);
+	TrainingDataGenerationDialog dlg;
+	if (dlg.exec() && !dlg.ui.lineEditCGADirectory->text().isEmpty() && !dlg.ui.lineEditOutputDirectory->text().isEmpty()) {
+		int numSamples = dlg.ui.lineEditNumSamples->text().toInt();
+		int imageWidth = dlg.ui.lineEditImageWidth->text().toInt();
+		int imageHeight = dlg.ui.lineEditImageHeight->text().toInt();
+		bool grayscale = false;
+		if (dlg.ui.checkBoxGrayscale->isChecked()) {
+			grayscale = true;
+		}
+		float xrot = dlg.ui.lineEditXrot->text().toFloat();
+		float xrotRange = dlg.ui.lineEditXrotRange->text().toFloat() * 2;
+		float yrot = dlg.ui.lineEditYrot->text().toFloat();
+		float yrotRange = dlg.ui.lineEditYrotRange->text().toFloat() * 2;
+
+		glWidget3D->generateTrainingDataWithAngleDelta(dlg.ui.lineEditCGADirectory->text(), dlg.ui.lineEditOutputDirectory->text(), numSamples, imageWidth, imageHeight, grayscale, xrot, xrotRange, yrot, yrotRange);
+	}
 }
 
 void MainWindow::onGenerateTrainingDataWithArbitraryAngles() {
@@ -86,14 +114,6 @@ void MainWindow::onGenerateTrainingDataWithArbitraryAngles() {
 
 void MainWindow::onGenerateTrainingDataWithoutAmgiousViewpoints() {
 	glWidget3D->generateTrainingDataWithoutAmgiousViewpoints();
-}
-
-void MainWindow::onGenerateTrainingDataWithFixedViewForRegression() {
-	glWidget3D->generateTrainingDataWithFixedViewForRegression(10000, 128, 128);
-}
-
-void MainWindow::onGenerateTrainingDataWithAngleDeltaForRegression() {
-	glWidget3D->generateTrainingDataWithAngleDeltaForRegression(100, 128, 128, 40, 40);
 }
 
 void MainWindow::onVisualizePredictedData() {

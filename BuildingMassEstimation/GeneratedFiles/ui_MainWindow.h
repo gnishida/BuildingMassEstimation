@@ -141,9 +141,6 @@ public:
         menuTool->addAction(actionGenerateTrainingDataWithArbitraryAngles);
         menuTool->addAction(actionGenerateTrainingDataWithoutAmbiguousViewpoints);
         menuTool->addSeparator();
-        menuTool->addAction(actionGenerateTrainingDataWithFixedViewForRegression);
-        menuTool->addAction(actionGenerateTrainingDataWithAngleDeltaForRegression);
-        menuTool->addSeparator();
         menuTool->addAction(actionVisualizePredictedData);
         menuTool->addAction(actionVisualizePredictedDataWithCameraParameters);
         menuTool->addSeparator();
