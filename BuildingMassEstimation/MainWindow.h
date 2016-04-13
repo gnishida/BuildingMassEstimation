@@ -27,6 +27,8 @@ public slots:
 	void onGenerateTrainingDataWithoutAmgiousViewpoints();
 	void onGenerateTrainingDataWithFixedViewForRegression();
 	void onGenerateTrainingDataWithAngleDeltaForRegression();
+	void onVisualizePredictedData();
+	void onVisualizePredictedDataWithCameraParameters();
 	void onMCMC();
 	void onMCMCAll();
 	void onComputeVanishingPoints();

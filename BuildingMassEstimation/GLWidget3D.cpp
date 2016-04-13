@@ -1588,6 +1588,289 @@ void GLWidget3D::generateTrainingDataWithAngleDeltaForRegression(int numSamples,
 	resizeGL(origWidth, origHeight);
 }
 
+void GLWidget3D::visualizePredictedData() {
+	// fix camera view direction and position
+	fixCamera();
+
+	for (int i = 1; i < 30; ++i) { 
+		QFile predicted_results_file(QString("prediction\\predicted_results_%1.txt").arg(i));
+		if (!predicted_results_file.exists()) continue;
+		if (!predicted_results_file.open(QIODevice::ReadOnly | QIODevice::Text)) return;
+
+		QFile test_file(QString("prediction\\test_%1.txt").arg(i, 2, 10, QChar('0')));
+		if (!test_file.exists()) continue;
+		if (!test_file.open(QIODevice::ReadOnly | QIODevice::Text)) return;
+
+		// load ground truth parameter values
+		std::vector<std::vector<float>> true_param_values;
+		QFile true_file(QString("results\\contour_%1\\parameters.txt").arg(i, 2, 10, QChar('0')));
+		if (!true_file.open(QIODevice::ReadOnly | QIODevice::Text)) return;
+		QTextStream in_true(&true_file);
+		while (true) {
+			QString line = in_true.readLine();
+			if (line.isEmpty()) break;
+
+			true_param_values.push_back(std::vector<float>());
+			QStringList values = line.split(",");
+			for (auto value : values) {
+				true_param_values.back().push_back(value.toFloat());
+			}
+		}
+
+
+		// setup CGA
+		QString cga_file = QString("..\\cga\\mass_20160329\\contour_%1.xml").arg(i, 2, 10, QChar('0'));
+		cga::CGA cga;
+		cga::Grammar grammar;
+		cga.modelMat = glm::rotate(glm::mat4(), -(float)M_PI * 0.5f, glm::vec3(1, 0, 0));
+		cga::parseGrammar(cga_file.toUtf8().constData(), grammar);
+
+		QString img_dir = QString("results\\contour_%1\\").arg(i, 2, 10, QChar('0'));
+
+		QTextStream in_predicted_results(&predicted_results_file);
+		QTextStream in_test(&test_file);
+
+		while (true) {
+			// read param values
+			QString line_values = in_predicted_results.readLine();
+			if (line_values.isEmpty()) break;
+			QStringList values = line_values.split(",");
+
+			std::vector<float> param_values;
+			for (auto value : values) {
+				param_values.push_back(value.toFloat());
+			}
+
+
+			// 画像IDを取得
+			int img_id;
+			QString line_imgname = in_test.readLine();
+			QStringList imgnames = line_imgname.split(" ");
+			sscanf(imgnames[0].toUtf8().constData(), "image_%06d.png", &img_id);
+
+			// 真のパラメータをセット
+			cga.setParamValues(grammar, true_param_values[img_id]);
+
+			// set axiom
+			cga::Rectangle* start = new cga::Rectangle("Start", "", glm::translate(glm::rotate(glm::mat4(), -3.141592f * 0.5f, glm::vec3(1, 0, 0)), glm::vec3(0, 0, 0)), glm::mat4(), 0, 0, glm::vec3(1, 1, 1));
+			cga.stack.push_back(boost::shared_ptr<cga::Shape>(start));
+
+			// generate 3d model
+			renderManager.removeObjects();
+			cga.derive(grammar, true);
+			std::vector<boost::shared_ptr<glutils::Face> > faces;
+			cga.generateGeometry(faces);
+			renderManager.addFaces(faces, true);
+
+			// render 2d image
+			render();
+			QImage img = grabFrameBuffer();
+			cv::Mat mat = cv::Mat(img.height(), img.width(), CV_8UC4, img.bits(), img.bytesPerLine()).clone();
+
+			// 画像を縮小
+			cv::resize(mat, mat, cv::Size(512, 512));
+			cv::threshold(mat, mat, 250, 255, CV_THRESH_BINARY);
+			cv::resize(mat, mat, cv::Size(256, 256));
+			cv::threshold(mat, mat, 250, 255, CV_THRESH_BINARY);
+
+			// predictdパラメータをセット
+			cga.setParamValues(grammar, param_values);
+
+			// set axiom
+			cga::Rectangle* start2 = new cga::Rectangle("Start", "", glm::translate(glm::rotate(glm::mat4(), -3.141592f * 0.5f, glm::vec3(1, 0, 0)), glm::vec3(0, 0, 0)), glm::mat4(), 0, 0, glm::vec3(1, 1, 1));
+			cga.stack.push_back(boost::shared_ptr<cga::Shape>(start2));
+
+			// generate 3d model
+			renderManager.removeObjects();
+			cga.derive(grammar, true);
+			std::vector<boost::shared_ptr<glutils::Face> > faces2;
+			cga.generateGeometry(faces2);
+			renderManager.addFaces(faces2, true);
+
+			// render 2d image
+			render();
+			QImage img2 = grabFrameBuffer();
+			cv::Mat mat2 = cv::Mat(img2.height(), img2.width(), CV_8UC4, img2.bits(), img2.bytesPerLine()).clone();
+
+			// 画像を縮小
+			cv::resize(mat2, mat2, cv::Size(512, 512));
+			cv::threshold(mat2, mat2, 250, 255, CV_THRESH_BINARY);
+			cv::resize(mat2, mat2, cv::Size(256, 256));
+			cv::threshold(mat2, mat2, 250, 255, CV_THRESH_BINARY);
+
+			// make the line blue
+			for (int r = 0; r < mat2.rows; ++r) {
+				for (int c = 0; c < mat2.cols; ++c) {
+					cv::Vec4b color = mat2.at<cv::Vec4b>(r, c);
+					color[0] = 255;
+					mat2.at<cv::Vec4b>(r, c) = color;
+				}
+			}
+
+			// blend
+			cv::Mat mat3;
+			cv::addWeighted(mat, 0.5, mat2, 0.5, 0.0, mat3);
+
+			// save
+			QString output_dir = QString("prediction\\contour_%1\\").arg(i, 2, 10, QChar('0'));
+			if (!QDir(output_dir).exists()) QDir().mkpath(output_dir);
+			QString output_filename = output_dir + QString("predicted_%1.png").arg(img_id, 6, 10, QChar('0'));
+			cv::imwrite(output_filename.toUtf8().constData(), mat3);
+		}
+	}
+}
+
+void GLWidget3D::visualizePredictedDataWithCameraParameters(float xangle_delta, float yangle_delta) {
+	// fix camera view direction and position
+	fixCamera();
+
+	for (int i = 1; i < 30; ++i) {
+		QFile predicted_results_file(QString("prediction\\predicted_results_%1.txt").arg(i));
+		if (!predicted_results_file.exists()) continue;
+		if (!predicted_results_file.open(QIODevice::ReadOnly | QIODevice::Text)) return;
+
+		QFile test_file(QString("prediction\\test_%1.txt").arg(i, 2, 10, QChar('0')));
+		if (!test_file.exists()) continue;
+		if (!test_file.open(QIODevice::ReadOnly | QIODevice::Text)) return;
+
+		// load ground truth parameter values
+		std::vector<std::vector<float>> true_param_values;
+		QFile true_file(QString("results\\contour_%1\\parameters.txt").arg(i, 2, 10, QChar('0')));
+		if (!true_file.open(QIODevice::ReadOnly | QIODevice::Text)) return;
+		QTextStream in_true(&true_file);
+		while (true) {
+			QString line = in_true.readLine();
+			if (line.isEmpty()) break;
+
+			true_param_values.push_back(std::vector<float>());
+			QStringList values = line.split(",");
+			for (auto value : values) {
+				true_param_values.back().push_back(value.toFloat());
+			}
+		}
+
+
+		// setup CGA
+		QString cga_file = QString("..\\cga\\mass_20160329\\contour_%1.xml").arg(i, 2, 10, QChar('0'));
+		cga::CGA cga;
+		cga::Grammar grammar;
+		cga.modelMat = glm::rotate(glm::mat4(), -(float)M_PI * 0.5f, glm::vec3(1, 0, 0));
+		cga::parseGrammar(cga_file.toUtf8().constData(), grammar);
+
+		QString img_dir = QString("results\\contour_%1\\").arg(i, 2, 10, QChar('0'));
+
+		QTextStream in_predicted_results(&predicted_results_file);
+		QTextStream in_test(&test_file);
+
+		while (true) {
+			// read param values
+			QString line_values = in_predicted_results.readLine();
+			if (line_values.isEmpty()) break;
+			QStringList values = line_values.split(",");
+
+			std::vector<float> param_values;
+			for (auto value : values) {
+				param_values.push_back(value.toFloat());
+			}
+
+
+			// 画像IDを取得
+			int img_id;
+			QString line_imgname = in_test.readLine();
+			QStringList imgnames = line_imgname.split(" ");
+			sscanf(imgnames[0].toUtf8().constData(), "image_%06d.png", &img_id);
+
+			// 真のカメラパラメータをセット
+			camera.xrot = 20 + true_param_values[img_id][0] * xangle_delta - xangle_delta * 0.5;
+			camera.yrot = 30 + true_param_values[img_id][1] * yangle_delta - yangle_delta * 0.5;
+			camera.updateMVPMatrix();
+			
+			// カメラパラメータを削除
+			std::vector<float> true_param = true_param_values[img_id];
+			true_param.erase(true_param.begin());
+			true_param.erase(true_param.begin());
+
+			// 真のパラメータをセット
+			cga.setParamValues(grammar, true_param);
+
+			// set axiom
+			cga::Rectangle* start = new cga::Rectangle("Start", "", glm::translate(glm::rotate(glm::mat4(), -3.141592f * 0.5f, glm::vec3(1, 0, 0)), glm::vec3(0, 0, 0)), glm::mat4(), 0, 0, glm::vec3(1, 1, 1));
+			cga.stack.push_back(boost::shared_ptr<cga::Shape>(start));
+
+			// generate 3d model
+			renderManager.removeObjects();
+			cga.derive(grammar, true);
+			std::vector<boost::shared_ptr<glutils::Face> > faces;
+			cga.generateGeometry(faces);
+			renderManager.addFaces(faces, true);
+
+			// render 2d image
+			render();
+			QImage img = grabFrameBuffer();
+			cv::Mat mat = cv::Mat(img.height(), img.width(), CV_8UC4, img.bits(), img.bytesPerLine()).clone();
+
+			// 画像を縮小
+			cv::resize(mat, mat, cv::Size(512, 512));
+			cv::threshold(mat, mat, 250, 255, CV_THRESH_BINARY);
+			cv::resize(mat, mat, cv::Size(256, 256));
+			cv::threshold(mat, mat, 250, 255, CV_THRESH_BINARY);
+
+			// predictedカメラパラメータをセット
+			camera.xrot = 20 + param_values[0] * xangle_delta - xangle_delta * 0.5;
+			camera.yrot = 30 + param_values[1] * yangle_delta - yangle_delta * 0.5;
+			camera.updateMVPMatrix();
+
+			// カメラパラメータを削除
+			param_values.erase(param_values.begin());
+			param_values.erase(param_values.begin());
+
+			// predictdパラメータをセット
+			cga.setParamValues(grammar, param_values);
+
+			// set axiom
+			cga::Rectangle* start2 = new cga::Rectangle("Start", "", glm::translate(glm::rotate(glm::mat4(), -3.141592f * 0.5f, glm::vec3(1, 0, 0)), glm::vec3(0, 0, 0)), glm::mat4(), 0, 0, glm::vec3(1, 1, 1));
+			cga.stack.push_back(boost::shared_ptr<cga::Shape>(start2));
+
+			// generate 3d model
+			renderManager.removeObjects();
+			cga.derive(grammar, true);
+			std::vector<boost::shared_ptr<glutils::Face> > faces2;
+			cga.generateGeometry(faces2);
+			renderManager.addFaces(faces2, true);
+
+			// render 2d image
+			render();
+			QImage img2 = grabFrameBuffer();
+			cv::Mat mat2 = cv::Mat(img2.height(), img2.width(), CV_8UC4, img2.bits(), img2.bytesPerLine()).clone();
+
+			// 画像を縮小
+			cv::resize(mat2, mat2, cv::Size(512, 512));
+			cv::threshold(mat2, mat2, 250, 255, CV_THRESH_BINARY);
+			cv::resize(mat2, mat2, cv::Size(256, 256));
+			cv::threshold(mat2, mat2, 250, 255, CV_THRESH_BINARY);
+
+			// make the line blue
+			for (int r = 0; r < mat2.rows; ++r) {
+				for (int c = 0; c < mat2.cols; ++c) {
+					cv::Vec4b color = mat2.at<cv::Vec4b>(r, c);
+					color[0] = 255;
+					mat2.at<cv::Vec4b>(r, c) = color;
+				}
+			}
+
+			// blend
+			cv::Mat mat3;
+			cv::addWeighted(mat, 0.5, mat2, 0.5, 0.0, mat3);
+
+			// save
+			QString output_dir = QString("prediction\\contour_%1\\").arg(i, 2, 10, QChar('0'));
+			if (!QDir(output_dir).exists()) QDir().mkpath(output_dir);
+			QString output_filename = output_dir + QString("predicted_%1.png").arg(img_id, 6, 10, QChar('0'));
+			cv::imwrite(output_filename.toUtf8().constData(), mat3);
+		}
+	}
+}
+
 void GLWidget3D::runMCMC(const std::string& cga_filename, const std::string& target_filename, int numIterations) {
 	fixCamera();
 

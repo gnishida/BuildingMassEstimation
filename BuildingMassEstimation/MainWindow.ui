@@ -48,6 +48,9 @@
     <addaction name="actionGenerateTrainingDataWithFixedViewForRegression"/>
     <addaction name="actionGenerateTrainingDataWithAngleDeltaForRegression"/>
     <addaction name="separator"/>
+    <addaction name="actionVisualizePredictedData"/>
+    <addaction name="actionVisualizePredictedDataWithCameraParameters"/>
+    <addaction name="separator"/>
     <addaction name="actionMCMC"/>
     <addaction name="actionMCMCAll"/>
     <addaction name="separator"/>
@@ -184,6 +187,16 @@
   <action name="actionGenerateTrainingDataWithAngleDeltaForRegression">
    <property name="text">
     <string>Generate Training Data With Angle Delta For Regression</string>
+   </property>
+  </action>
+  <action name="actionVisualizePredictedData">
+   <property name="text">
+    <string>Visualize Predicted Data</string>
+   </property>
+  </action>
+  <action name="actionVisualizePredictedDataWithCameraParameters">
+   <property name="text">
+    <string>Visualize Predicted Data With Camera Parameters</string>
    </property>
   </action>
  </widget>

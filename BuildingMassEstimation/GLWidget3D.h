@@ -66,6 +66,8 @@ public:
 	void generateTrainingDataWithoutAmgiousViewpoints();
 	void generateTrainingDataWithFixedViewForRegression(int numSamples, int image_width, int image_height);
 	void generateTrainingDataWithAngleDeltaForRegression(int numSamples, int image_width, int image_height, float xangle_delta, float yangle_delta);
+	void visualizePredictedData();
+	void visualizePredictedDataWithCameraParameters(float xangle_delta, float yangle_delta);
 	void runMCMC(const std::string& cga_filename, const std::string& target_filename, int numIterations);
 	void runMCMCAll(const std::string& cga_dir, int numIterations);
 	void fixCamera();

@@ -23,6 +23,8 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
 	connect(ui.actionGenerateTrainingDataWithoutAmbiguousViewpoints, SIGNAL(triggered()), this, SLOT(onGenerateTrainingDataWithoutAmgiousViewpoints()));
 	connect(ui.actionGenerateTrainingDataWithFixedViewForRegression, SIGNAL(triggered()), this, SLOT(onGenerateTrainingDataWithFixedViewForRegression()));
 	connect(ui.actionGenerateTrainingDataWithAngleDeltaForRegression, SIGNAL(triggered()), this, SLOT(onGenerateTrainingDataWithAngleDeltaForRegression()));
+	connect(ui.actionVisualizePredictedData, SIGNAL(triggered()), this, SLOT(onVisualizePredictedData()));
+	connect(ui.actionVisualizePredictedDataWithCameraParameters, SIGNAL(triggered()), this, SLOT(onVisualizePredictedDataWithCameraParameters()));
 	connect(ui.actionMCMC, SIGNAL(triggered()), this, SLOT(onMCMC()));
 	connect(ui.actionMCMCAll, SIGNAL(triggered()), this, SLOT(onMCMCAll()));
 	connect(ui.actionComputeVanishingPoints, SIGNAL(triggered()), this, SLOT(onComputeVanishingPoints()));
@@ -92,6 +94,14 @@ void MainWindow::onGenerateTrainingDataWithFixedViewForRegression() {
 
 void MainWindow::onGenerateTrainingDataWithAngleDeltaForRegression() {
 	glWidget3D->generateTrainingDataWithAngleDeltaForRegression(100, 128, 128, 20, 20);
+}
+
+void MainWindow::onVisualizePredictedData() {
+	glWidget3D->visualizePredictedData();
+}
+
+void MainWindow::onVisualizePredictedDataWithCameraParameters() {
+	glWidget3D->visualizePredictedDataWithCameraParameters(20, 20);
 }
 
 void MainWindow::onMCMC() {
