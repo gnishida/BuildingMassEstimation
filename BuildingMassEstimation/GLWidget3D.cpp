@@ -1655,9 +1655,12 @@ void GLWidget3D::generateTrainingDataWithAngleDeltaForRegression(const QString& 
 	resizeGL(origWidth, origHeight);
 }
 
-void GLWidget3D::visualizePredictedData() {
+void GLWidget3D::visualizePredictedData(const QString& cga_dir, const QString& out_dir, float xrotMean, float yrotMean) {
 	// fix camera view direction and position
 	fixCamera();
+	camera.xrot = xrotMean;
+	camera.yrot = yrotMean;
+	camera.updateMVPMatrix();
 
 	for (int i = 1; i < 30; ++i) { 
 		QFile predicted_results_file(QString("prediction\\predicted_results_%1.txt").arg(i));
@@ -1670,7 +1673,7 @@ void GLWidget3D::visualizePredictedData() {
 
 		// load ground truth parameter values
 		std::vector<std::vector<float>> true_param_values;
-		QFile true_file(QString("results\\contour_%1\\parameters.txt").arg(i, 2, 10, QChar('0')));
+		QFile true_file(QString(out_dir + "\\contour_%1\\parameters.txt").arg(i, 2, 10, QChar('0')));
 		if (!true_file.open(QIODevice::ReadOnly | QIODevice::Text)) return;
 		QTextStream in_true(&true_file);
 		while (true) {
@@ -1686,13 +1689,11 @@ void GLWidget3D::visualizePredictedData() {
 
 
 		// setup CGA
-		QString cga_file = QString("..\\cga\\mass_20160329\\contour_%1.xml").arg(i, 2, 10, QChar('0'));
+		QString cga_file = QString(cga_dir + "\\contour_%1.xml").arg(i, 2, 10, QChar('0'));
 		cga::CGA cga;
 		cga::Grammar grammar;
 		cga.modelMat = glm::rotate(glm::mat4(), -(float)M_PI * 0.5f, glm::vec3(1, 0, 0));
 		cga::parseGrammar(cga_file.toUtf8().constData(), grammar);
-
-		QString img_dir = QString("results\\contour_%1\\").arg(i, 2, 10, QChar('0'));
 
 		QTextStream in_predicted_results(&predicted_results_file);
 		QTextStream in_test(&test_file);
@@ -1787,13 +1788,9 @@ void GLWidget3D::visualizePredictedData() {
 	}
 }
 
-void GLWidget3D::visualizePredictedDataWithCameraParameters(float xangle_delta, float yangle_delta) {
+void GLWidget3D::visualizePredictedDataWithCameraParameters(const QString& cga_dir, const QString& out_dir, float xrotMean, float xrotRange, float yrotMean, float yrotRange) {
 	// fix camera view direction and position
 	fixCamera();
-
-	// get the directory where the training data is stored
-	QString dataset_dir = QFileDialog::getExistingDirectory(this, tr("Open Directory"),	".", QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
-	if (dataset_dir.isEmpty()) return;
 
 	for (int i = 1; i < 30; ++i) {
 		QFile predicted_results_file(QString("prediction\\predicted_results_%1.txt").arg(i));
@@ -1806,7 +1803,7 @@ void GLWidget3D::visualizePredictedDataWithCameraParameters(float xangle_delta, 
 
 		// load ground truth parameter values
 		std::vector<std::vector<float>> true_param_values;
-		QFile true_file(QString(dataset_dir + "\\contour_%1\\parameters.txt").arg(i, 2, 10, QChar('0')));
+		QFile true_file(QString(out_dir + "\\contour_%1\\parameters.txt").arg(i, 2, 10, QChar('0')));
 		if (!true_file.open(QIODevice::ReadOnly | QIODevice::Text)) return;
 		QTextStream in_true(&true_file);
 		while (true) {
@@ -1822,13 +1819,11 @@ void GLWidget3D::visualizePredictedDataWithCameraParameters(float xangle_delta, 
 
 
 		// setup CGA
-		QString cga_file = QString("..\\cga\\mass_20160329\\contour_%1.xml").arg(i, 2, 10, QChar('0'));
+		QString cga_file = QString(cga_dir + "\\contour_%1.xml").arg(i, 2, 10, QChar('0'));
 		cga::CGA cga;
 		cga::Grammar grammar;
 		cga.modelMat = glm::rotate(glm::mat4(), -(float)M_PI * 0.5f, glm::vec3(1, 0, 0));
 		cga::parseGrammar(cga_file.toUtf8().constData(), grammar);
-
-		QString img_dir = QString("results\\contour_%1\\").arg(i, 2, 10, QChar('0'));
 
 		QTextStream in_predicted_results(&predicted_results_file);
 		QTextStream in_test(&test_file);
@@ -1852,8 +1847,8 @@ void GLWidget3D::visualizePredictedDataWithCameraParameters(float xangle_delta, 
 			sscanf(imgnames[0].toUtf8().constData(), "image_%06d.png", &img_id);
 
 			// 真のカメラパラメータをセット
-			camera.xrot = 20 + true_param_values[img_id][0] * xangle_delta - xangle_delta * 0.5;
-			camera.yrot = 30 + true_param_values[img_id][1] * yangle_delta - yangle_delta * 0.5;
+			camera.xrot = xrotMean + true_param_values[img_id][0] * xrotRange - xrotRange * 0.5;
+			camera.yrot = yrotMean + true_param_values[img_id][1] * yrotRange - yrotRange * 0.5;
 			camera.updateMVPMatrix();
 			
 			// カメラパラメータを削除
@@ -1887,8 +1882,8 @@ void GLWidget3D::visualizePredictedDataWithCameraParameters(float xangle_delta, 
 			cv::threshold(mat, mat, 250, 255, CV_THRESH_BINARY);
 
 			// predictedカメラパラメータをセット
-			camera.xrot = 20 + param_values[0] * xangle_delta - xangle_delta * 0.5;
-			camera.yrot = 30 + param_values[1] * yangle_delta - yangle_delta * 0.5;
+			camera.xrot = xrotMean + param_values[0] * xrotRange - xrotRange * 0.5;
+			camera.yrot = yrotMean + param_values[1] * yrotRange - yrotRange * 0.5;
 			camera.updateMVPMatrix();
 
 			// カメラパラメータを削除

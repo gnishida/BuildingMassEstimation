@@ -2,6 +2,7 @@
 #include <QFileDialog>
 #include "MCMCConfigDialog.h"
 #include "TrainingDataGenerationDialog.h"
+#include "VisualizePredictedDataDialog.h"
 
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
 	ui.setupUi(this);
@@ -117,11 +118,27 @@ void MainWindow::onGenerateTrainingDataWithoutAmgiousViewpoints() {
 }
 
 void MainWindow::onVisualizePredictedData() {
-	glWidget3D->visualizePredictedData();
+	VisualizePredictedDataDialog dlg;
+	dlg.ui.lineEditXrotRange->setEnabled(false);
+	dlg.ui.lineEditYrotRange->setEnabled(false);
+	if (dlg.exec() && !dlg.ui.lineEditCGADirectory->text().isEmpty() && !dlg.ui.lineEditDataDirectory->text().isEmpty()) {
+		float xrot = dlg.ui.lineEditXrot->text().toFloat();
+		float yrot = dlg.ui.lineEditYrot->text().toFloat();
+
+		glWidget3D->visualizePredictedData(dlg.ui.lineEditCGADirectory->text(), dlg.ui.lineEditDataDirectory->text(), xrot, yrot);
+	}
 }
 
 void MainWindow::onVisualizePredictedDataWithCameraParameters() {
-	glWidget3D->visualizePredictedDataWithCameraParameters(40, 40);
+	VisualizePredictedDataDialog dlg;
+	if (dlg.exec() && !dlg.ui.lineEditCGADirectory->text().isEmpty() && !dlg.ui.lineEditDataDirectory->text().isEmpty()) {
+		float xrot = dlg.ui.lineEditXrot->text().toFloat();
+		float xrotRange = dlg.ui.lineEditXrotRange->text().toFloat() * 2;
+		float yrot = dlg.ui.lineEditYrot->text().toFloat();
+		float yrotRange = dlg.ui.lineEditYrotRange->text().toFloat() * 2;
+
+		glWidget3D->visualizePredictedDataWithCameraParameters(dlg.ui.lineEditCGADirectory->text(), dlg.ui.lineEditDataDirectory->text(), xrot, xrotRange, yrot, yrotRange);
+	}
 }
 
 void MainWindow::onMCMC() {

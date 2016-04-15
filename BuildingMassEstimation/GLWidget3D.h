@@ -66,8 +66,8 @@ public:
 	void generateTrainingDataWithoutAmgiousViewpoints();
 	void generateTrainingDataWithFixedViewForRegression(const QString& cga_dir, const QString& out_dir, int numSamples, int image_width, int image_height, bool grayscale, float xrot, float yrot);
 	void generateTrainingDataWithAngleDeltaForRegression(const QString& cga_dir, const QString& out_dir, int numSamples, int image_width, int image_height, bool grayscale, float xrotMean, float xrotRange, float yrotMean, float yrotRange);
-	void visualizePredictedData();
-	void visualizePredictedDataWithCameraParameters(float xangle_delta, float yangle_delta);
+	void visualizePredictedData(const QString& cga_dir, const QString& out_dir, float xrotMean, float yrotMean);
+	void visualizePredictedDataWithCameraParameters(const QString& cga_dir, const QString& out_dir, float xrotMean, float xrotRange, float yrotMean, float yrotRange);
 	void runMCMC(const std::string& cga_filename, const std::string& target_filename, int numIterations);
 	void runMCMCAll(const std::string& cga_dir, int numIterations);
 	void fixCamera();
