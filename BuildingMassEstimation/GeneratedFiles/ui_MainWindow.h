@@ -138,7 +138,6 @@ public:
         menuFile->addAction(actionExit);
         menuTool->addAction(actionGenerateTrainingDataWithFixedView);
         menuTool->addAction(actionGenerateTrainingDataWithAngleDelta);
-        menuTool->addAction(actionGenerateTrainingDataWithArbitraryAngles);
         menuTool->addAction(actionGenerateTrainingDataWithoutAmbiguousViewpoints);
         menuTool->addSeparator();
         menuTool->addAction(actionVisualizePredictedData);

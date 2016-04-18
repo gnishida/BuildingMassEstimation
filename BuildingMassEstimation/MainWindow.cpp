@@ -21,7 +21,6 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
 	connect(ui.actionExit, SIGNAL(triggered()), this, SLOT(close()));
 	connect(ui.actionGenerateTrainingDataWithFixedView, SIGNAL(triggered()), this, SLOT(onGenerateTrainingDataWithFixedView()));
 	connect(ui.actionGenerateTrainingDataWithAngleDelta, SIGNAL(triggered()), this, SLOT(onGenerateTrainingDataWithAngleDelta()));
-	connect(ui.actionGenerateTrainingDataWithArbitraryAngles, SIGNAL(triggered()), this, SLOT(onGenerateTrainingDataWithArbitraryAngles()));
 	connect(ui.actionGenerateTrainingDataWithoutAmbiguousViewpoints, SIGNAL(triggered()), this, SLOT(onGenerateTrainingDataWithoutAmgiousViewpoints()));
 	connect(ui.actionVisualizePredictedData, SIGNAL(triggered()), this, SLOT(onVisualizePredictedData()));
 	connect(ui.actionVisualizePredictedDataWithCameraParameters, SIGNAL(triggered()), this, SLOT(onVisualizePredictedDataWithCameraParameters()));
@@ -109,12 +108,23 @@ void MainWindow::onGenerateTrainingDataWithAngleDelta() {
 	}
 }
 
-void MainWindow::onGenerateTrainingDataWithArbitraryAngles() {
-	glWidget3D->generateTrainingDataWithArbitraryAngles();
-}
-
 void MainWindow::onGenerateTrainingDataWithoutAmgiousViewpoints() {
-	glWidget3D->generateTrainingDataWithoutAmgiousViewpoints();
+	TrainingDataGenerationDialog dlg;
+	if (dlg.exec() && !dlg.ui.lineEditCGADirectory->text().isEmpty() && !dlg.ui.lineEditOutputDirectory->text().isEmpty()) {
+		int numSamples = dlg.ui.lineEditNumSamples->text().toInt();
+		int imageWidth = dlg.ui.lineEditImageWidth->text().toInt();
+		int imageHeight = dlg.ui.lineEditImageHeight->text().toInt();
+		bool grayscale = false;
+		if (dlg.ui.checkBoxGrayscale->isChecked()) {
+			grayscale = true;
+		}
+		float xrot = dlg.ui.lineEditXrot->text().toFloat();
+		float xrotRange = dlg.ui.lineEditXrotRange->text().toFloat() * 2;
+		float yrot = dlg.ui.lineEditYrot->text().toFloat();
+		float yrotRange = dlg.ui.lineEditYrotRange->text().toFloat() * 2;
+
+		glWidget3D->generateTrainingDataWithoutAmgiousViewpoints(dlg.ui.lineEditCGADirectory->text(), dlg.ui.lineEditOutputDirectory->text(), numSamples, imageWidth, imageHeight, grayscale, xrot, xrotRange, yrot, yrotRange);
+	}
 }
 
 void MainWindow::onVisualizePredictedData() {

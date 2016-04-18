@@ -42,7 +42,6 @@
     </property>
     <addaction name="actionGenerateTrainingDataWithFixedView"/>
     <addaction name="actionGenerateTrainingDataWithAngleDelta"/>
-    <addaction name="actionGenerateTrainingDataWithArbitraryAngles"/>
     <addaction name="actionGenerateTrainingDataWithoutAmbiguousViewpoints"/>
     <addaction name="separator"/>
     <addaction name="actionVisualizePredictedData"/>

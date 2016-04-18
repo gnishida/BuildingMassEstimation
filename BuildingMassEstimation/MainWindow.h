@@ -23,7 +23,6 @@ public slots:
 	void onResetCamera();
 	void onGenerateTrainingDataWithFixedView();
 	void onGenerateTrainingDataWithAngleDelta();
-	void onGenerateTrainingDataWithArbitraryAngles();
 	void onGenerateTrainingDataWithoutAmgiousViewpoints();
 	void onVisualizePredictedData();
 	void onVisualizePredictedDataWithCameraParameters();
