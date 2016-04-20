@@ -22,7 +22,6 @@
 #define	M_PI	3.141592653
 #endif
 
-
 ViewpointExample::ViewpointExample(const std::vector<float>& param_values, std::vector<std::pair<glm::vec2, glm::vec2>>& contour) {
 	this->param_values = param_values;
 	this->contour = contour;
@@ -874,7 +873,7 @@ void GLWidget3D::loadCGA(const std::string& cga_filename) {
 	render();
 }
 
-void GLWidget3D::generateTrainingDataWithFixedView(const QString& cga_dir, const QString& out_dir, int numSamples, int image_width, int image_height, bool grayscale, float xrot, float yrot) {
+void GLWidget3D::generateTrainingDataWithFixedView(const QString& cga_dir, const QString& out_dir, int numSamples, int image_width, int image_height, bool grayscale, int cameraType, float cameraDistance, float cameraHeight, float xrot, float yrot, float fov) {
 	QString resultDir = out_dir + "\\contours\\";
 
 	if (QDir(resultDir).exists()) {
@@ -894,10 +893,21 @@ void GLWidget3D::generateTrainingDataWithFixedView(const QString& cga_dir, const
 	resizeGL(512, 512);
 
 	// fix camera view direction and position
-	fixCamera();
 	camera.xrot = xrot;
 	camera.yrot = yrot;
-	camera.updateMVPMatrix();
+	camera.zrot = 0;
+	if (cameraType == 0) { // street view
+		camera.pos.x = 0;
+		camera.pos.y = -cameraDistance * sinf(camera.xrot / 180.0f * M_PI) + cameraHeight * cosf(camera.xrot / 180.0f * M_PI);
+		camera.pos.z = cameraDistance * cosf(camera.xrot / 180.0f * M_PI) + cameraHeight * sinf(camera.xrot / 180.0f * M_PI);
+	}
+	else { // aerial view
+		camera.pos.x = 0;
+		camera.pos.y = cameraHeight;
+		camera.pos.z = cameraDistance;
+	}
+	camera.fovy = fov;
+	camera.updatePMatrix(width(), height());
 
 	QDir dir(cga_dir);
 
@@ -944,6 +954,9 @@ void GLWidget3D::generateTrainingDataWithFixedView(const QString& cga_dir, const
 			QImage img = grabFrameBuffer();
 			cv::Mat mat = cv::Mat(img.height(), img.width(), CV_8UC4, img.bits(), img.bytesPerLine()).clone();
 
+			// translate the image
+			if (!moveCenter(mat)) continue;
+
 			// 画像を縮小
 			cv::resize(mat, mat, cv::Size(256, 256));
 			cv::threshold(mat, mat, 250, 255, CV_THRESH_BINARY);
@@ -980,7 +993,24 @@ void GLWidget3D::generateTrainingDataWithFixedView(const QString& cga_dir, const
 	resizeGL(origWidth, origHeight);
 }
 
-void GLWidget3D::generateTrainingDataWithAngleDelta(const QString& cga_dir, const QString& out_dir, int numSamples, int image_width, int image_height, bool grayscale, float xrotMean, float xrotRange, float yrotMean, float yrotRange) {
+/**
+ * @param cga_dir			directory of CGA files
+ * @param out_dir			directory for the output files
+ * @param numSamples		number of samples per viewpoint
+ * @param image_width		image width
+ * @param image_height		image height
+ * @param grayscale			true if the output file is to be grayscale
+ * @param cameraTYpe		0 -- street view / 1 -- aerial view
+ * @param cameraDistance	distance to the camera
+ * @param cameraHeight		height of the camera
+ * @param xrotMean			mean of xrot
+ * @param xrotRange			range of xrot
+ * @param yrotMean			mean of yrot
+ * @param yrotRange			range of yrot
+ * @param fovMin			min of fov
+ * @param fovMax			max of fov
+ */
+void GLWidget3D::generateTrainingDataWithAngleDelta(const QString& cga_dir, const QString& out_dir, int numSamples, int image_width, int image_height, bool grayscale, int cameraType, float cameraDistance, float cameraHeight, float xrotMean, float xrotRange, float yrotMean, float yrotRange, float fovMin, float fovMax) {
 	// get the directory where the training data will be stored
 	QString resultDir = out_dir + "\\contours\\";
 
@@ -999,9 +1029,6 @@ void GLWidget3D::generateTrainingDataWithAngleDelta(const QString& cga_dir, cons
 	int origHeight = height();
 	resize(512, 512);
 	resizeGL(512, 512);
-
-	// fix camera view direction and position
-	fixCamera();
 
 	QDir dir(cga_dir);
 
@@ -1034,63 +1061,81 @@ void GLWidget3D::generateTrainingDataWithAngleDelta(const QString& cga_dir, cons
 			// rotate the camera around x axis within the range
 			for (int xrot = 0; xrot <= xrotRange; ++xrot) {
 				camera.xrot = xrotMean - xrotRange * 0.5 + xrot;
-				camera.updateMVPMatrix();
-
-				// randomly sample N parameter values
-				for (int k = 0; k < numSamples; ++k) {
-					renderManager.removeObjects();
-
-					std::vector<float> param_values;
-					param_values = cga.randomParamValues(grammar);
-
-					// set axiom
-					cga::Rectangle* start = new cga::Rectangle("Start", "", glm::translate(glm::rotate(glm::mat4(), -3.141592f * 0.5f, glm::vec3(1, 0, 0)), glm::vec3(0, 0, 0)), glm::mat4(), 0, 0, glm::vec3(1, 1, 1));
-					cga.stack.push_back(boost::shared_ptr<cga::Shape>(start));
-
-					// generate 3d model
-					cga.derive(grammar, true);
-					std::vector<boost::shared_ptr<glutils::Face> > faces;
-					cga.generateGeometry(faces);
-					renderManager.addFaces(faces, true);
-
-					// render 2d image
-					render();
-					QImage img = grabFrameBuffer();
-					cv::Mat mat = cv::Mat(img.height(), img.width(), CV_8UC4, img.bits(), img.bytesPerLine()).clone();
-
-					// 画像を縮小
-					cv::resize(mat, mat, cv::Size(256, 256));
-					cv::threshold(mat, mat, 250, 255, CV_THRESH_BINARY);
-					if (image_width != 256 || image_height != 256) {
-						cv::resize(mat, mat, cv::Size(image_width, image_height));
-						cv::threshold(mat, mat, 250, 255, CV_THRESH_BINARY);
-					}
-
-					// grayscale
-					if (grayscale) {
-						cv::cvtColor(mat, mat, CV_BGR2GRAY);
-					}
-
-					// set filename
-					QString filename = resultDir + "/" + fileInfoList[i].baseName() + "/" + QString("image_%1.png").arg(count, 6, 10, QChar('0'));
-					cv::imwrite(filename.toUtf8().constData(), mat);
-
-					// add camera parameters to the params
-					param_values.insert(param_values.begin(), (float)yrot / yrotRange);
-					param_values.insert(param_values.begin(), (float)xrot / xrotRange);
-
-					// write all the param values [xrot, yrot, param1, param2, ...] to the file
-					for (int pi = 0; pi < param_values.size(); ++pi) {
-						if (pi > 0) {
-							out << ",";
-						}
-						out << param_values[pi];
-					}
-					out << "\n";
-
-					count++;
+				camera.zrot = 0;
+				if (cameraType == 0) { // street view
+					camera.pos.x = 0;
+					camera.pos.y = -cameraDistance * sinf(camera.xrot / 180.0f * M_PI) + cameraHeight * cosf(camera.xrot / 180.0f * M_PI);
+					camera.pos.z = cameraDistance * cosf(camera.xrot / 180.0f * M_PI) + cameraHeight * sinf(camera.xrot / 180.0f * M_PI);
+				}
+				else { // aerial view
+					camera.pos.x = 0;
+					camera.pos.y = cameraHeight;
+					camera.pos.z = cameraDistance;
 				}
 
+				for (int fov_index = 0; fov_index <= 9; ++fov_index) {
+					camera.fovy = fovMin + (fovMax - fovMin) / 9.0f * fov_index;
+					camera.updatePMatrix(width(), height());
+
+					// randomly sample N parameter values
+					for (int k = 0; k < numSamples; ++k) {
+						renderManager.removeObjects();
+
+						std::vector<float> param_values;
+						param_values = cga.randomParamValues(grammar);
+
+						// set axiom
+						cga::Rectangle* start = new cga::Rectangle("Start", "", glm::translate(glm::rotate(glm::mat4(), -3.141592f * 0.5f, glm::vec3(1, 0, 0)), glm::vec3(0, 0, 0)), glm::mat4(), 0, 0, glm::vec3(1, 1, 1));
+						cga.stack.push_back(boost::shared_ptr<cga::Shape>(start));
+
+						// generate 3d model
+						cga.derive(grammar, true);
+						std::vector<boost::shared_ptr<glutils::Face> > faces;
+						cga.generateGeometry(faces);
+						renderManager.addFaces(faces, true);
+
+						// render 2d image
+						render();
+						QImage img = grabFrameBuffer();
+						cv::Mat mat = cv::Mat(img.height(), img.width(), CV_8UC4, img.bits(), img.bytesPerLine()).clone();
+
+						// translate the image
+						if (!moveCenter(mat)) continue;
+
+						// 画像を縮小
+						cv::resize(mat, mat, cv::Size(256, 256));
+						cv::threshold(mat, mat, 250, 255, CV_THRESH_BINARY);
+						if (image_width != 256 || image_height != 256) {
+							cv::resize(mat, mat, cv::Size(image_width, image_height));
+							cv::threshold(mat, mat, 250, 255, CV_THRESH_BINARY);
+						}
+
+						// grayscale
+						if (grayscale) {
+							cv::cvtColor(mat, mat, CV_BGR2GRAY);
+						}
+
+						// set filename
+						QString filename = resultDir + "/" + fileInfoList[i].baseName() + "/" + QString("image_%1.png").arg(count, 6, 10, QChar('0'));
+						cv::imwrite(filename.toUtf8().constData(), mat);
+
+						// add camera parameters to the params
+						param_values.insert(param_values.begin(), (float)fov_index / 9.0f);
+						param_values.insert(param_values.begin(), (float)yrot / yrotRange);
+						param_values.insert(param_values.begin(), (float)xrot / xrotRange);
+
+						// write all the param values [xrot, yrot, param1, param2, ...] to the file
+						for (int pi = 0; pi < param_values.size(); ++pi) {
+							if (pi > 0) {
+								out << ",";
+							}
+							out << param_values[pi];
+						}
+						out << "\n";
+
+						count++;
+					}
+				}
 			}
 		}
 
@@ -1486,12 +1531,23 @@ void GLWidget3D::generateTrainingDataWithoutAmgiousViewpoints(const QString& cga
 
 }
 
-void GLWidget3D::visualizePredictedData(const QString& cga_dir, const QString& out_dir, float xrotMean, float yrotMean) {
+void GLWidget3D::visualizePredictedData(const QString& cga_dir, const QString& out_dir, int cameraType, float cameraDistance, float cameraHeight, float xrotMean, float yrotMean, float fov) {
 	// fix camera view direction and position
-	fixCamera();
 	camera.xrot = xrotMean;
 	camera.yrot = yrotMean;
-	camera.updateMVPMatrix();
+	camera.zrot = 0;
+	camera.fovy = fov;
+	if (cameraType == 0) { // street view
+		camera.pos.x = 0;
+		camera.pos.y = -cameraDistance * sinf(camera.xrot / 180.0f * M_PI) + cameraHeight * cosf(camera.xrot / 180.0f * M_PI);
+		camera.pos.z = cameraDistance * cosf(camera.xrot / 180.0f * M_PI) + cameraHeight * sinf(camera.xrot / 180.0f * M_PI);
+	}
+	else { // aerial view
+		camera.pos.x = 0;
+		camera.pos.y = cameraHeight;
+		camera.pos.z = cameraDistance;
+	}
+	camera.updatePMatrix(width(), height());
 
 	for (int i = 1; i < 30; ++i) { 
 		QFile predicted_results_file(QString("prediction\\predicted_results_%1.txt").arg(i));
@@ -1619,7 +1675,7 @@ void GLWidget3D::visualizePredictedData(const QString& cga_dir, const QString& o
 	}
 }
 
-void GLWidget3D::visualizePredictedDataWithCameraParameters(const QString& cga_dir, const QString& out_dir, float xrotMean, float xrotRange, float yrotMean, float yrotRange) {
+void GLWidget3D::visualizePredictedDataWithCameraParameters(const QString& cga_dir, const QString& out_dir, int cameraType, float cameraDistance, float cameraHeight, float xrotMean, float xrotRange, float yrotMean, float yrotRange, float fovMin, float fovMax) {
 	// fix camera view direction and position
 	fixCamera();
 
@@ -1679,10 +1735,23 @@ void GLWidget3D::visualizePredictedDataWithCameraParameters(const QString& cga_d
 			// 真のカメラパラメータをセット
 			camera.xrot = xrotMean + true_param_values[img_id][0] * xrotRange - xrotRange * 0.5;
 			camera.yrot = yrotMean + true_param_values[img_id][1] * yrotRange - yrotRange * 0.5;
-			camera.updateMVPMatrix();
+			camera.zrot = 0.0f;
+			camera.fovy = fovMin + true_param_values[img_id][2] * (fovMax - fovMin);
+			if (cameraType == 0) { // street view
+				camera.pos.x = 0;
+				camera.pos.y = -cameraDistance * sinf(camera.xrot / 180.0f * M_PI) + cameraHeight * cosf(camera.xrot / 180.0f * M_PI);
+				camera.pos.z = cameraDistance * cosf(camera.xrot / 180.0f * M_PI) + cameraHeight * sinf(camera.xrot / 180.0f * M_PI);
+			}
+			else { // aerial view
+				camera.pos.x = 0;
+				camera.pos.y = cameraHeight;
+				camera.pos.z = cameraDistance;
+			}
+			camera.updatePMatrix(width(), height());
 			
 			// カメラパラメータを削除
 			std::vector<float> true_param = true_param_values[img_id];
+			true_param.erase(true_param.begin());
 			true_param.erase(true_param.begin());
 			true_param.erase(true_param.begin());
 
@@ -1714,9 +1783,22 @@ void GLWidget3D::visualizePredictedDataWithCameraParameters(const QString& cga_d
 			// predictedカメラパラメータをセット
 			camera.xrot = xrotMean + param_values[0] * xrotRange - xrotRange * 0.5;
 			camera.yrot = yrotMean + param_values[1] * yrotRange - yrotRange * 0.5;
+			camera.zrot = 0.0f;
+			camera.fovy = fovMin + param_values[2] * (fovMax - fovMin);
+			if (cameraType == 0) { // street view
+				camera.pos.x = 0;
+				camera.pos.y = -cameraDistance * sinf(camera.xrot / 180.0f * M_PI) + cameraHeight * cosf(camera.xrot / 180.0f * M_PI);
+				camera.pos.z = cameraDistance * cosf(camera.xrot / 180.0f * M_PI) + cameraHeight * sinf(camera.xrot / 180.0f * M_PI);
+			}
+			else { // aerial view
+				camera.pos.x = 0;
+				camera.pos.y = cameraHeight;
+				camera.pos.z = cameraDistance;
+			}
 			camera.updateMVPMatrix();
 
 			// カメラパラメータを削除
+			param_values.erase(param_values.begin());
 			param_values.erase(param_values.begin());
 			param_values.erase(param_values.begin());
 
@@ -1805,6 +1887,71 @@ void GLWidget3D::runMCMCAll(const std::string& cga_dir, int numIterations) {
 		QString result_image_filename = QString("result_%1.png").arg(i + 1);
 		grabFrameBuffer().save("results/" + result_image_filename);
 	}
+}
+
+bool GLWidget3D::moveCenter(cv::Mat& img) {
+	bool scan_r = false;
+	int min_r = -1;
+	int max_r = -1;
+	for (int r = 0; r < img.rows; ++r) {
+		for (int c = 0; c < img.cols; ++c) {
+			cv::Vec4b color = img.at<cv::Vec4b>(r, c);
+
+			if (color[0] < 100 && color[1] < 100 && color[2] < 100) {
+				if (!scan_r) {
+					min_r = r;
+					max_r = r;
+					scan_r = true;
+				}
+				else {
+					max_r = r;
+				}
+			}
+		}
+	}
+
+	bool scan_c = false;
+	int min_c = -1;
+	int max_c = -1;
+	for (int c = 0; c < img.rows; ++c) {
+		for (int r = 0; r < img.cols; ++r) {
+			cv::Vec4b color = img.at<cv::Vec4b>(r, c);
+
+			if (color[0] < 100 && color[1] < 100 && color[2] < 100) {
+				if (!scan_c) {
+					min_c = c;
+					max_c = c;
+					scan_c = true;
+				}
+				else {
+					max_c = c;
+				}
+			}
+		}
+	}
+
+	// if there is no image, cancel the translation.
+	if (min_r == -1 || min_c == -1) return false;
+
+	// if the image is not strictly inside the canvas, cancel the translation.
+	if (min_r == 0 || min_c == 0 || max_r == img.rows - 1 || max_c == img.cols - 1) return false;
+
+	cv::Mat tmp = img.clone();
+	img = cv::Mat(img.size(), img.type(), cv::Vec4b(255, 255, 255, 255));
+
+	// translate the image
+	int offset_c = img.cols * 0.5 - (min_c + max_c) * 0.5;
+	int offset_r= img.rows * 0.5 - (min_r + max_r) * 0.5;
+	for (int r = 0; r < img.rows; ++r) {
+		for (int c = 0; c < img.cols; ++c) {
+			if (c + offset_c < 0 || c + offset_c >= img.cols) continue;
+			if (r + offset_r < 0 || r + offset_r >= img.rows) continue;
+
+			img.at<cv::Vec4b>(r + offset_r, c + offset_c) = tmp.at<cv::Vec4b>(r, c);
+		}
+	}
+
+	return true;
 }
 
 /**

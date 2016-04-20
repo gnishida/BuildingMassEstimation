@@ -74,6 +74,7 @@ void MainWindow::onGenerateTrainingDataWithFixedView() {
 	TrainingDataGenerationDialog dlg;
 	dlg.ui.lineEditXrotRange->setEnabled(false);
 	dlg.ui.lineEditYrotRange->setEnabled(false);
+	dlg.ui.lineEditFovMin->setEnabled(false);
 	if (dlg.exec() && !dlg.ui.lineEditCGADirectory->text().isEmpty() && !dlg.ui.lineEditOutputDirectory->text().isEmpty()) {
 		int numSamples = dlg.ui.lineEditNumSamples->text().toInt();
 		int imageWidth = dlg.ui.lineEditImageWidth->text().toInt();
@@ -82,10 +83,15 @@ void MainWindow::onGenerateTrainingDataWithFixedView() {
 		if (dlg.ui.checkBoxGrayscale->isChecked()) {
 			grayscale = true;
 		}
+		int cameraType = 0;
+		if (dlg.ui.radioButtonCameraTypeAerialView->isChecked()) {
+			cameraType = 1;
+		}
 		float xrot = dlg.ui.lineEditXrot->text().toFloat();
 		float yrot = dlg.ui.lineEditYrot->text().toFloat();
+		float fovMin = dlg.ui.lineEditFovMin->text().toFloat();
 
-		glWidget3D->generateTrainingDataWithFixedView(dlg.ui.lineEditCGADirectory->text(), dlg.ui.lineEditOutputDirectory->text(), numSamples, imageWidth, imageHeight, grayscale, xrot, yrot);
+		glWidget3D->generateTrainingDataWithFixedView(dlg.ui.lineEditCGADirectory->text(), dlg.ui.lineEditOutputDirectory->text(), numSamples, imageWidth, imageHeight, grayscale, cameraType, 70.0f, 0.0f, xrot, yrot, fovMin);
 	}
 }
 
@@ -99,12 +105,18 @@ void MainWindow::onGenerateTrainingDataWithAngleDelta() {
 		if (dlg.ui.checkBoxGrayscale->isChecked()) {
 			grayscale = true;
 		}
+		int cameraType = 0;
+		if (dlg.ui.radioButtonCameraTypeAerialView->isChecked()) {
+			cameraType = 1;
+		}
 		float xrot = dlg.ui.lineEditXrot->text().toFloat();
 		float xrotRange = dlg.ui.lineEditXrotRange->text().toFloat() * 2;
 		float yrot = dlg.ui.lineEditYrot->text().toFloat();
 		float yrotRange = dlg.ui.lineEditYrotRange->text().toFloat() * 2;
+		float fovMin = dlg.ui.lineEditFovMin->text().toFloat();
+		float fovMax = dlg.ui.lineEditFovMax->text().toFloat();
 
-		glWidget3D->generateTrainingDataWithAngleDelta(dlg.ui.lineEditCGADirectory->text(), dlg.ui.lineEditOutputDirectory->text(), numSamples, imageWidth, imageHeight, grayscale, xrot, xrotRange, yrot, yrotRange);
+		glWidget3D->generateTrainingDataWithAngleDelta(dlg.ui.lineEditCGADirectory->text(), dlg.ui.lineEditOutputDirectory->text(), numSamples, imageWidth, imageHeight, grayscale, cameraType, 70.0f, 0.0f, xrot, xrotRange, yrot, yrotRange, fovMin, fovMax);
 	}
 }
 
@@ -131,23 +143,35 @@ void MainWindow::onVisualizePredictedData() {
 	VisualizePredictedDataDialog dlg;
 	dlg.ui.lineEditXrotRange->setEnabled(false);
 	dlg.ui.lineEditYrotRange->setEnabled(false);
+	dlg.ui.lineEditFovMax->setEnabled(false);
 	if (dlg.exec() && !dlg.ui.lineEditCGADirectory->text().isEmpty() && !dlg.ui.lineEditDataDirectory->text().isEmpty()) {
+		int cameraType = 0;
+		if (dlg.ui.radioButtonCameraTypeAerialView->isChecked()) {
+			cameraType = 1;
+		}
 		float xrot = dlg.ui.lineEditXrot->text().toFloat();
 		float yrot = dlg.ui.lineEditYrot->text().toFloat();
+		float fov = dlg.ui.lineEditFovMin->text().toFloat();
 
-		glWidget3D->visualizePredictedData(dlg.ui.lineEditCGADirectory->text(), dlg.ui.lineEditDataDirectory->text(), xrot, yrot);
+		glWidget3D->visualizePredictedData(dlg.ui.lineEditCGADirectory->text(), dlg.ui.lineEditDataDirectory->text(), cameraType, 70, 0, xrot, yrot, fov);
 	}
 }
 
 void MainWindow::onVisualizePredictedDataWithCameraParameters() {
 	VisualizePredictedDataDialog dlg;
 	if (dlg.exec() && !dlg.ui.lineEditCGADirectory->text().isEmpty() && !dlg.ui.lineEditDataDirectory->text().isEmpty()) {
+		int cameraType = 0;
+		if (dlg.ui.radioButtonCameraTypeAerialView->isChecked()) {
+			cameraType = 1;
+		}
 		float xrot = dlg.ui.lineEditXrot->text().toFloat();
 		float xrotRange = dlg.ui.lineEditXrotRange->text().toFloat() * 2;
 		float yrot = dlg.ui.lineEditYrot->text().toFloat();
 		float yrotRange = dlg.ui.lineEditYrotRange->text().toFloat() * 2;
+		float fovMin = dlg.ui.lineEditFovMin->text().toFloat();
+		float fovMax = dlg.ui.lineEditFovMax->text().toFloat();
 
-		glWidget3D->visualizePredictedDataWithCameraParameters(dlg.ui.lineEditCGADirectory->text(), dlg.ui.lineEditDataDirectory->text(), xrot, xrotRange, yrot, yrotRange);
+		glWidget3D->visualizePredictedDataWithCameraParameters(dlg.ui.lineEditCGADirectory->text(), dlg.ui.lineEditDataDirectory->text(), cameraType, 70, 0, xrot, xrotRange, yrot, yrotRange, fovMin, fovMax);
 	}
 }
 
