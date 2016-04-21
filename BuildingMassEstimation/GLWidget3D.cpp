@@ -873,7 +873,7 @@ void GLWidget3D::loadCGA(const std::string& cga_filename) {
 	render();
 }
 
-void GLWidget3D::generateTrainingDataWithFixedView(const QString& cga_dir, const QString& out_dir, int numSamples, int image_width, int image_height, bool grayscale, int cameraType, float cameraDistance, float cameraHeight, float xrot, float yrot, float fov) {
+void GLWidget3D::generateTrainingDataWithFixedView(const QString& cga_dir, const QString& out_dir, int numSamples, int image_width, int image_height, bool grayscale, bool centering, int cameraType, float cameraDistance, float cameraHeight, float xrot, float yrot, float fov) {
 	QString resultDir = out_dir + "\\contours\\";
 
 	if (QDir(resultDir).exists()) {
@@ -955,7 +955,9 @@ void GLWidget3D::generateTrainingDataWithFixedView(const QString& cga_dir, const
 			cv::Mat mat = cv::Mat(img.height(), img.width(), CV_8UC4, img.bits(), img.bytesPerLine()).clone();
 
 			// translate the image
-			if (!moveCenter(mat)) continue;
+			if (centering) {
+				if (!moveCenter(mat)) continue;
+			}
 
 			// 画像を縮小
 			cv::resize(mat, mat, cv::Size(256, 256));
@@ -1010,7 +1012,7 @@ void GLWidget3D::generateTrainingDataWithFixedView(const QString& cga_dir, const
  * @param fovMin			min of fov
  * @param fovMax			max of fov
  */
-void GLWidget3D::generateTrainingDataWithAngleDelta(const QString& cga_dir, const QString& out_dir, int numSamples, int image_width, int image_height, bool grayscale, int cameraType, float cameraDistance, float cameraHeight, float xrotMean, float xrotRange, float yrotMean, float yrotRange, float fovMin, float fovMax) {
+void GLWidget3D::generateTrainingDataWithAngleDelta(const QString& cga_dir, const QString& out_dir, int numSamples, int image_width, int image_height, bool grayscale, bool centering, int cameraType, float cameraDistance, float cameraHeight, float xrotMean, float xrotRange, float yrotMean, float yrotRange, float fovMin, float fovMax) {
 	// get the directory where the training data will be stored
 	QString resultDir = out_dir + "\\contours\\";
 
@@ -1100,7 +1102,9 @@ void GLWidget3D::generateTrainingDataWithAngleDelta(const QString& cga_dir, cons
 						cv::Mat mat = cv::Mat(img.height(), img.width(), CV_8UC4, img.bits(), img.bytesPerLine()).clone();
 
 						// translate the image
-						if (!moveCenter(mat)) continue;
+						if (centering) {
+							if (!moveCenter(mat)) continue;
+						}
 
 						// 画像を縮小
 						cv::resize(mat, mat, cv::Size(256, 256));
@@ -1146,7 +1150,7 @@ void GLWidget3D::generateTrainingDataWithAngleDelta(const QString& cga_dir, cons
 	resizeGL(origWidth, origHeight);
 }
 
-void GLWidget3D::generateTrainingDataWithoutAmgiousViewpoints(const QString& cga_dir, const QString& out_dir, int numSamples, int image_width, int image_height, bool grayscale, float xrotMean, float xrotRange, float yrotMean, float yrotRange) {
+void GLWidget3D::generateTrainingDataWithoutAmgiousViewpoints(const QString& cga_dir, const QString& out_dir, int numSamples, int image_width, int image_height, bool grayscale, bool centering, float xrotMean, float xrotRange, float yrotMean, float yrotRange) {
 	QString resultDir = out_dir + "\\contours\\";
 
 	if (QDir(resultDir).exists()) {
@@ -1502,6 +1506,11 @@ void GLWidget3D::generateTrainingDataWithoutAmgiousViewpoints(const QString& cga
 
 				QImage img = grabFrameBuffer();
 				cv::Mat mat = cv::Mat(img.height(), img.width(), CV_8UC4, img.bits(), img.bytesPerLine()).clone();
+
+				// translate the image
+				if (centering) {
+					if (!moveCenter(mat)) continue;
+				}
 
 				// 画像を縮小
 				cv::resize(mat, mat, cv::Size(256, 256));

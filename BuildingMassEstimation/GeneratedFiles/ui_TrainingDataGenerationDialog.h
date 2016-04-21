@@ -56,6 +56,7 @@ public:
     QLabel *label_12;
     QRadioButton *radioButtonCameraTypeStreetView;
     QRadioButton *radioButtonCameraTypeAerialView;
+    QCheckBox *checkBoxCentering;
 
     void setupUi(QDialog *TrainingDataGenerationDialog)
     {
@@ -103,7 +104,7 @@ public:
         lineEditImageHeight->setGeometry(QRect(300, 100, 61, 20));
         checkBoxGrayscale = new QCheckBox(TrainingDataGenerationDialog);
         checkBoxGrayscale->setObjectName(QStringLiteral("checkBoxGrayscale"));
-        checkBoxGrayscale->setGeometry(QRect(390, 100, 70, 17));
+        checkBoxGrayscale->setGeometry(QRect(380, 100, 70, 17));
         label_6 = new QLabel(TrainingDataGenerationDialog);
         label_6->setObjectName(QStringLiteral("label_6"));
         label_6->setGeometry(QRect(60, 160, 71, 16));
@@ -162,6 +163,9 @@ public:
         radioButtonCameraTypeAerialView = new QRadioButton(TrainingDataGenerationDialog);
         radioButtonCameraTypeAerialView->setObjectName(QStringLiteral("radioButtonCameraTypeAerialView"));
         radioButtonCameraTypeAerialView->setGeometry(QRect(240, 130, 82, 17));
+        checkBoxCentering = new QCheckBox(TrainingDataGenerationDialog);
+        checkBoxCentering->setObjectName(QStringLiteral("checkBoxCentering"));
+        checkBoxCentering->setGeometry(QRect(460, 100, 70, 17));
 
         retranslateUi(TrainingDataGenerationDialog);
 
@@ -190,6 +194,7 @@ public:
         label_12->setText(QApplication::translate("TrainingDataGenerationDialog", "Camera type:", 0));
         radioButtonCameraTypeStreetView->setText(QApplication::translate("TrainingDataGenerationDialog", "Street view", 0));
         radioButtonCameraTypeAerialView->setText(QApplication::translate("TrainingDataGenerationDialog", "Aerial view", 0));
+        checkBoxCentering->setText(QApplication::translate("TrainingDataGenerationDialog", "Centering", 0));
     } // retranslateUi
 
 };

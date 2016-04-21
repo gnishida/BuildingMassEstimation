@@ -83,6 +83,10 @@ void MainWindow::onGenerateTrainingDataWithFixedView() {
 		if (dlg.ui.checkBoxGrayscale->isChecked()) {
 			grayscale = true;
 		}
+		bool centering = false;
+		if (dlg.ui.checkBoxCentering->isChecked()) {
+			centering = true;
+		}
 		int cameraType = 0;
 		if (dlg.ui.radioButtonCameraTypeAerialView->isChecked()) {
 			cameraType = 1;
@@ -91,7 +95,7 @@ void MainWindow::onGenerateTrainingDataWithFixedView() {
 		float yrot = dlg.ui.lineEditYrot->text().toFloat();
 		float fovMin = dlg.ui.lineEditFovMin->text().toFloat();
 
-		glWidget3D->generateTrainingDataWithFixedView(dlg.ui.lineEditCGADirectory->text(), dlg.ui.lineEditOutputDirectory->text(), numSamples, imageWidth, imageHeight, grayscale, cameraType, 70.0f, 0.0f, xrot, yrot, fovMin);
+		glWidget3D->generateTrainingDataWithFixedView(dlg.ui.lineEditCGADirectory->text(), dlg.ui.lineEditOutputDirectory->text(), numSamples, imageWidth, imageHeight, grayscale, centering, cameraType, 70.0f, 0.0f, xrot, yrot, fovMin);
 	}
 }
 
@@ -105,6 +109,10 @@ void MainWindow::onGenerateTrainingDataWithAngleDelta() {
 		if (dlg.ui.checkBoxGrayscale->isChecked()) {
 			grayscale = true;
 		}
+		bool centering = false;
+		if (dlg.ui.checkBoxCentering->isChecked()) {
+			centering = true;
+		}
 		int cameraType = 0;
 		if (dlg.ui.radioButtonCameraTypeAerialView->isChecked()) {
 			cameraType = 1;
@@ -116,7 +124,7 @@ void MainWindow::onGenerateTrainingDataWithAngleDelta() {
 		float fovMin = dlg.ui.lineEditFovMin->text().toFloat();
 		float fovMax = dlg.ui.lineEditFovMax->text().toFloat();
 
-		glWidget3D->generateTrainingDataWithAngleDelta(dlg.ui.lineEditCGADirectory->text(), dlg.ui.lineEditOutputDirectory->text(), numSamples, imageWidth, imageHeight, grayscale, cameraType, 70.0f, 0.0f, xrot, xrotRange, yrot, yrotRange, fovMin, fovMax);
+		glWidget3D->generateTrainingDataWithAngleDelta(dlg.ui.lineEditCGADirectory->text(), dlg.ui.lineEditOutputDirectory->text(), numSamples, imageWidth, imageHeight, grayscale, centering, cameraType, 70.0f, 0.0f, xrot, xrotRange, yrot, yrotRange, fovMin, fovMax);
 	}
 }
 
@@ -130,12 +138,16 @@ void MainWindow::onGenerateTrainingDataWithoutAmgiousViewpoints() {
 		if (dlg.ui.checkBoxGrayscale->isChecked()) {
 			grayscale = true;
 		}
+		bool centering = false;
+		if (dlg.ui.checkBoxCentering->isChecked()) {
+			centering = true;
+		}
 		float xrot = dlg.ui.lineEditXrot->text().toFloat();
 		float xrotRange = dlg.ui.lineEditXrotRange->text().toFloat() * 2;
 		float yrot = dlg.ui.lineEditYrot->text().toFloat();
 		float yrotRange = dlg.ui.lineEditYrotRange->text().toFloat() * 2;
 
-		glWidget3D->generateTrainingDataWithoutAmgiousViewpoints(dlg.ui.lineEditCGADirectory->text(), dlg.ui.lineEditOutputDirectory->text(), numSamples, imageWidth, imageHeight, grayscale, xrot, xrotRange, yrot, yrotRange);
+		glWidget3D->generateTrainingDataWithoutAmgiousViewpoints(dlg.ui.lineEditCGADirectory->text(), dlg.ui.lineEditOutputDirectory->text(), numSamples, imageWidth, imageHeight, grayscale, centering, xrot, xrotRange, yrot, yrotRange);
 	}
 }
 

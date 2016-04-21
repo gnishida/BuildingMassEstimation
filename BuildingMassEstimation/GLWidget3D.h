@@ -60,9 +60,9 @@ public:
 	void drawScene();
 	void render();
 	void loadCGA(const std::string& cga_filename);
-	void generateTrainingDataWithFixedView(const QString& cga_dir, const QString& out_dir, int numSamples, int image_width, int image_height, bool grayscale, int cameraType, float cameraDistance, float cameraHeight, float xrot, float yrot, float fov);
-	void generateTrainingDataWithAngleDelta(const QString& cga_dir, const QString& out_dir, int numSamples, int image_width, int image_height, bool grayscale, int cameraType, float cameraDistance, float cameraHeight, float xrotMean, float xrotRange, float yrotMean, float yrotRange, float fovMin, float fovMax);
-	void generateTrainingDataWithoutAmgiousViewpoints(const QString& cga_dir, const QString& out_dir, int numSamples, int image_width, int image_height, bool grayscale, float xrotMean, float xrotRange, float yrotMean, float yrotRange);
+	void generateTrainingDataWithFixedView(const QString& cga_dir, const QString& out_dir, int numSamples, int image_width, int image_height, bool grayscale, bool centering, int cameraType, float cameraDistance, float cameraHeight, float xrot, float yrot, float fov);
+	void generateTrainingDataWithAngleDelta(const QString& cga_dir, const QString& out_dir, int numSamples, int image_width, int image_height, bool grayscale, bool centering, int cameraType, float cameraDistance, float cameraHeight, float xrotMean, float xrotRange, float yrotMean, float yrotRange, float fovMin, float fovMax);
+	void generateTrainingDataWithoutAmgiousViewpoints(const QString& cga_dir, const QString& out_dir, int numSamples, int image_width, int image_height, bool grayscale, bool centering, float xrotMean, float xrotRange, float yrotMean, float yrotRange);
 	void visualizePredictedData(const QString& cga_dir, const QString& out_dir, int cameraType, float cameraDistance, float cameraHeight, float xrotMean, float yrotMean, float fov);
 	void visualizePredictedDataWithCameraParameters(const QString& cga_dir, const QString& out_dir, int cameraType, float cameraDistance, float cameraHeight, float xrotMean, float xrotRange, float yrotMean, float yrotRange, float fovMin, float fovMax);
 	void runMCMC(const std::string& cga_filename, const std::string& target_filename, int numIterations);

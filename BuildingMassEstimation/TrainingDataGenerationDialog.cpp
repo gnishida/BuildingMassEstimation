@@ -12,6 +12,7 @@ TrainingDataGenerationDialog::TrainingDataGenerationDialog(QWidget *parent)
 	ui.lineEditImageWidth->setText("128");
 	ui.lineEditImageHeight->setText("128");
 	ui.checkBoxGrayscale->setChecked(true);
+	ui.checkBoxCentering->setChecked(true);
 	ui.radioButtonCameraTypeStreetView->setChecked(true);
 	ui.lineEditXrot->setText("20");
 	ui.lineEditXrotRange->setText("20");

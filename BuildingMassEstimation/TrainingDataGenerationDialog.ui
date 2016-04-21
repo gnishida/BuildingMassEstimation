@@ -166,7 +166,7 @@
   <widget class="QCheckBox" name="checkBoxGrayscale">
    <property name="geometry">
     <rect>
-     <x>390</x>
+     <x>380</x>
      <y>100</y>
      <width>70</width>
      <height>17</height>
@@ -398,6 +398,19 @@
    </property>
    <property name="text">
     <string>Aerial view</string>
+   </property>
+  </widget>
+  <widget class="QCheckBox" name="checkBoxCentering">
+   <property name="geometry">
+    <rect>
+     <x>460</x>
+     <y>100</y>
+     <width>70</width>
+     <height>17</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Centering</string>
    </property>
   </widget>
  </widget>
