@@ -42,6 +42,7 @@
     </property>
     <addaction name="actionGenerateTrainingDataWithFixedView"/>
     <addaction name="actionGenerateTrainingDataWithAngleDelta"/>
+    <addaction name="actionGenerateTrainingDataWithAngleDeltaAndFOV"/>
     <addaction name="actionGenerateTrainingDataWithoutAmbiguousViewpoints"/>
     <addaction name="separator"/>
     <addaction name="actionVisualizePredictedData"/>
@@ -193,6 +194,11 @@
   <action name="actionVisualizePredictedDataWithCameraParameters">
    <property name="text">
     <string>Visualize Predicted Data With Camera Parameters</string>
+   </property>
+  </action>
+  <action name="actionGenerateTrainingDataWithAngleDeltaAndFOV">
+   <property name="text">
+    <string>Generate Training Data With Angle Delta And FOV</string>
    </property>
   </action>
  </widget>

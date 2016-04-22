@@ -1012,7 +1012,159 @@ void GLWidget3D::generateTrainingDataWithFixedView(const QString& cga_dir, const
  * @param fovMin			min of fov
  * @param fovMax			max of fov
  */
-void GLWidget3D::generateTrainingDataWithAngleDelta(const QString& cga_dir, const QString& out_dir, int numSamples, int image_width, int image_height, bool grayscale, bool centering, int cameraType, float cameraDistance, float cameraHeight, float xrotMean, float xrotRange, float yrotMean, float yrotRange, float fovMin, float fovMax) {
+void GLWidget3D::generateTrainingDataWithAngleDelta(const QString& cga_dir, const QString& out_dir, int numSamples, int image_width, int image_height, bool grayscale, bool centering, int cameraType, float cameraDistance, float cameraHeight, float xrotMean, float xrotRange, float yrotMean, float yrotRange, float fov) {
+	// get the directory where the training data will be stored
+	QString resultDir = out_dir + "\\contours\\";
+
+	if (QDir(resultDir).exists()) {
+		std::cout << "Clearning output directory..." << std::endl;
+		QDir(resultDir).removeRecursively();
+		std::cout << "Done." << std::endl;
+	}
+	QDir().mkpath(resultDir);
+
+	srand(0);
+	renderManager.useShadow = false;
+	renderManager.renderingMode = RenderManager::RENDERING_MODE_CONTOUR;
+
+	int origWidth = width();
+	int origHeight = height();
+	resize(512, 512);
+	resizeGL(512, 512);
+
+	QDir dir(cga_dir);
+
+	QStringList filters;
+	filters << "*.xml";
+	QFileInfoList fileInfoList = dir.entryInfoList(filters, QDir::Files | QDir::NoDotAndDotDot);
+	for (int i = 0; i < fileInfoList.size(); ++i) {
+		int count = 0;
+
+		if (!QDir(resultDir + fileInfoList[i].baseName()).exists()) QDir().mkdir(resultDir + fileInfoList[i].baseName());
+
+		QFile file(resultDir + fileInfoList[i].baseName() + "/parameters.txt");
+		if (!file.open(QIODevice::WriteOnly)) {
+			std::cerr << "Cannot open file for writing: " << qPrintable(file.errorString()) << std::endl;
+			return;
+		}
+
+		QTextStream out(&file);
+
+		cga::CGA cga;
+
+		cga::Grammar grammar;
+		cga.modelMat = glm::rotate(glm::mat4(), -(float)M_PI * 0.5f, glm::vec3(1, 0, 0));
+		cga::parseGrammar(fileInfoList[i].absoluteFilePath().toUtf8().constData(), grammar);
+
+		// rotate the camera around y axis within the range
+		for (int yrot = 0; yrot <= yrotRange; ++yrot) {
+			camera.yrot = yrotMean - yrotRange * 0.5 + yrot;
+
+			// rotate the camera around x axis within the range
+			for (int xrot = 0; xrot <= xrotRange; ++xrot) {
+				camera.xrot = xrotMean - xrotRange * 0.5 + xrot;
+				camera.zrot = 0;
+				if (cameraType == 0) { // street view
+					camera.pos.x = 0;
+					camera.pos.y = -cameraDistance * sinf(camera.xrot / 180.0f * M_PI) + cameraHeight * cosf(camera.xrot / 180.0f * M_PI);
+					camera.pos.z = cameraDistance * cosf(camera.xrot / 180.0f * M_PI) + cameraHeight * sinf(camera.xrot / 180.0f * M_PI);
+				}
+				else { // aerial view
+					camera.pos.x = 0;
+					camera.pos.y = cameraHeight;
+					camera.pos.z = cameraDistance;
+				}
+
+				camera.fovy = fov;
+				camera.updatePMatrix(width(), height());
+
+				// randomly sample N parameter values
+				for (int k = 0; k < numSamples; ++k) {
+					renderManager.removeObjects();
+
+					std::vector<float> param_values;
+					param_values = cga.randomParamValues(grammar);
+
+					// set axiom
+					cga::Rectangle* start = new cga::Rectangle("Start", "", glm::translate(glm::rotate(glm::mat4(), -3.141592f * 0.5f, glm::vec3(1, 0, 0)), glm::vec3(0, 0, 0)), glm::mat4(), 0, 0, glm::vec3(1, 1, 1));
+					cga.stack.push_back(boost::shared_ptr<cga::Shape>(start));
+
+					// generate 3d model
+					cga.derive(grammar, true);
+					std::vector<boost::shared_ptr<glutils::Face> > faces;
+					cga.generateGeometry(faces);
+					renderManager.addFaces(faces, true);
+
+					// render 2d image
+					render();
+					QImage img = grabFrameBuffer();
+					cv::Mat mat = cv::Mat(img.height(), img.width(), CV_8UC4, img.bits(), img.bytesPerLine()).clone();
+
+					// translate the image
+					if (centering) {
+						if (!moveCenter(mat)) continue;
+					}
+
+					// 画像を縮小
+					cv::resize(mat, mat, cv::Size(256, 256));
+					cv::threshold(mat, mat, 250, 255, CV_THRESH_BINARY);
+					if (image_width != 256 || image_height != 256) {
+						cv::resize(mat, mat, cv::Size(image_width, image_height));
+						cv::threshold(mat, mat, 250, 255, CV_THRESH_BINARY);
+					}
+
+					// grayscale
+					if (grayscale) {
+						cv::cvtColor(mat, mat, CV_BGR2GRAY);
+					}
+
+					// set filename
+					QString filename = resultDir + "/" + fileInfoList[i].baseName() + "/" + QString("image_%1.png").arg(count, 6, 10, QChar('0'));
+					cv::imwrite(filename.toUtf8().constData(), mat);
+
+					// add camera parameters to the params
+					param_values.insert(param_values.begin(), (float)yrot / yrotRange);
+					param_values.insert(param_values.begin(), (float)xrot / xrotRange);
+
+					// write all the param values [xrot, yrot, param1, param2, ...] to the file
+					for (int pi = 0; pi < param_values.size(); ++pi) {
+						if (pi > 0) {
+							out << ",";
+						}
+						out << param_values[pi];
+					}
+					out << "\n";
+
+					count++;
+				}
+			}
+		}
+
+		file.close();
+	}
+
+	resize(origWidth, origHeight);
+	resizeGL(origWidth, origHeight);
+}
+
+/**
+* @param cga_dir			directory of CGA files
+* @param out_dir			directory for the output files
+* @param numSamples		number of samples per viewpoint
+* @param image_width		image width
+* @param image_height		image height
+* @param grayscale			true if the output file is to be grayscale
+* @param cameraTYpe		0 -- street view / 1 -- aerial view
+* @param cameraDistance	distance to the camera
+* @param cameraHeight		height of the camera
+* @param xrotMean			mean of xrot
+* @param xrotRange			range of xrot
+* @param yrotMean			mean of yrot
+* @param yrotRange			range of yrot
+* @param fovMin			min of fov
+* @param fovMax			max of fov
+*/
+void GLWidget3D::generateTrainingDataWithAngleDeltaAndFOV(const QString& cga_dir, const QString& out_dir, int numSamples, int image_width, int image_height, bool grayscale, bool centering, int cameraType, float cameraDistance, float cameraHeight, float xrotMean, float xrotRange, float yrotMean, float yrotRange, float fovMin, float fovMax) {
 	// get the directory where the training data will be stored
 	QString resultDir = out_dir + "\\contours\\";
 

@@ -21,6 +21,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
 	connect(ui.actionExit, SIGNAL(triggered()), this, SLOT(close()));
 	connect(ui.actionGenerateTrainingDataWithFixedView, SIGNAL(triggered()), this, SLOT(onGenerateTrainingDataWithFixedView()));
 	connect(ui.actionGenerateTrainingDataWithAngleDelta, SIGNAL(triggered()), this, SLOT(onGenerateTrainingDataWithAngleDelta()));
+	connect(ui.actionGenerateTrainingDataWithAngleDeltaAndFOV, SIGNAL(triggered()), this, SLOT(onGenerateTrainingDataWithAngleDeltaAndFOV()));
 	connect(ui.actionGenerateTrainingDataWithoutAmbiguousViewpoints, SIGNAL(triggered()), this, SLOT(onGenerateTrainingDataWithoutAmgiousViewpoints()));
 	connect(ui.actionVisualizePredictedData, SIGNAL(triggered()), this, SLOT(onVisualizePredictedData()));
 	connect(ui.actionVisualizePredictedDataWithCameraParameters, SIGNAL(triggered()), this, SLOT(onVisualizePredictedDataWithCameraParameters()));
@@ -74,7 +75,7 @@ void MainWindow::onGenerateTrainingDataWithFixedView() {
 	TrainingDataGenerationDialog dlg;
 	dlg.ui.lineEditXrotRange->setEnabled(false);
 	dlg.ui.lineEditYrotRange->setEnabled(false);
-	dlg.ui.lineEditFovMin->setEnabled(false);
+	dlg.ui.lineEditFovMax->setEnabled(false);
 	if (dlg.exec() && !dlg.ui.lineEditCGADirectory->text().isEmpty() && !dlg.ui.lineEditOutputDirectory->text().isEmpty()) {
 		int numSamples = dlg.ui.lineEditNumSamples->text().toInt();
 		int imageWidth = dlg.ui.lineEditImageWidth->text().toInt();
@@ -101,6 +102,35 @@ void MainWindow::onGenerateTrainingDataWithFixedView() {
 
 void MainWindow::onGenerateTrainingDataWithAngleDelta() {
 	TrainingDataGenerationDialog dlg;
+	dlg.ui.lineEditFovMax->setEnabled(false);
+	if (dlg.exec() && !dlg.ui.lineEditCGADirectory->text().isEmpty() && !dlg.ui.lineEditOutputDirectory->text().isEmpty()) {
+		int numSamples = dlg.ui.lineEditNumSamples->text().toInt();
+		int imageWidth = dlg.ui.lineEditImageWidth->text().toInt();
+		int imageHeight = dlg.ui.lineEditImageHeight->text().toInt();
+		bool grayscale = false;
+		if (dlg.ui.checkBoxGrayscale->isChecked()) {
+			grayscale = true;
+		}
+		bool centering = false;
+		if (dlg.ui.checkBoxCentering->isChecked()) {
+			centering = true;
+		}
+		int cameraType = 0;
+		if (dlg.ui.radioButtonCameraTypeAerialView->isChecked()) {
+			cameraType = 1;
+		}
+		float xrot = dlg.ui.lineEditXrot->text().toFloat();
+		float xrotRange = dlg.ui.lineEditXrotRange->text().toFloat() * 2;
+		float yrot = dlg.ui.lineEditYrot->text().toFloat();
+		float yrotRange = dlg.ui.lineEditYrotRange->text().toFloat() * 2;
+		float fovMin = dlg.ui.lineEditFovMin->text().toFloat();
+
+		glWidget3D->generateTrainingDataWithAngleDelta(dlg.ui.lineEditCGADirectory->text(), dlg.ui.lineEditOutputDirectory->text(), numSamples, imageWidth, imageHeight, grayscale, centering, cameraType, 70.0f, 0.0f, xrot, xrotRange, yrot, yrotRange, fovMin);
+	}
+}
+
+void MainWindow::onGenerateTrainingDataWithAngleDeltaAndFOV() {
+	TrainingDataGenerationDialog dlg;
 	if (dlg.exec() && !dlg.ui.lineEditCGADirectory->text().isEmpty() && !dlg.ui.lineEditOutputDirectory->text().isEmpty()) {
 		int numSamples = dlg.ui.lineEditNumSamples->text().toInt();
 		int imageWidth = dlg.ui.lineEditImageWidth->text().toInt();
@@ -124,7 +154,7 @@ void MainWindow::onGenerateTrainingDataWithAngleDelta() {
 		float fovMin = dlg.ui.lineEditFovMin->text().toFloat();
 		float fovMax = dlg.ui.lineEditFovMax->text().toFloat();
 
-		glWidget3D->generateTrainingDataWithAngleDelta(dlg.ui.lineEditCGADirectory->text(), dlg.ui.lineEditOutputDirectory->text(), numSamples, imageWidth, imageHeight, grayscale, centering, cameraType, 70.0f, 0.0f, xrot, xrotRange, yrot, yrotRange, fovMin, fovMax);
+		glWidget3D->generateTrainingDataWithAngleDeltaAndFOV(dlg.ui.lineEditCGADirectory->text(), dlg.ui.lineEditOutputDirectory->text(), numSamples, imageWidth, imageHeight, grayscale, centering, cameraType, 70.0f, 0.0f, xrot, xrotRange, yrot, yrotRange, fovMin, fovMax);
 	}
 }
 

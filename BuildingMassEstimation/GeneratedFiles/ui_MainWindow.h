@@ -47,6 +47,7 @@ public:
     QAction *actionGenerateTrainingDataWithAngleDeltaForRegression;
     QAction *actionVisualizePredictedData;
     QAction *actionVisualizePredictedDataWithCameraParameters;
+    QAction *actionGenerateTrainingDataWithAngleDeltaAndFOV;
     QWidget *centralWidget;
     QMenuBar *menuBar;
     QMenu *menuFile;
@@ -105,6 +106,8 @@ public:
         actionVisualizePredictedData->setObjectName(QStringLiteral("actionVisualizePredictedData"));
         actionVisualizePredictedDataWithCameraParameters = new QAction(MainWindowClass);
         actionVisualizePredictedDataWithCameraParameters->setObjectName(QStringLiteral("actionVisualizePredictedDataWithCameraParameters"));
+        actionGenerateTrainingDataWithAngleDeltaAndFOV = new QAction(MainWindowClass);
+        actionGenerateTrainingDataWithAngleDeltaAndFOV->setObjectName(QStringLiteral("actionGenerateTrainingDataWithAngleDeltaAndFOV"));
         centralWidget = new QWidget(MainWindowClass);
         centralWidget->setObjectName(QStringLiteral("centralWidget"));
         MainWindowClass->setCentralWidget(centralWidget);
@@ -138,6 +141,7 @@ public:
         menuFile->addAction(actionExit);
         menuTool->addAction(actionGenerateTrainingDataWithFixedView);
         menuTool->addAction(actionGenerateTrainingDataWithAngleDelta);
+        menuTool->addAction(actionGenerateTrainingDataWithAngleDeltaAndFOV);
         menuTool->addAction(actionGenerateTrainingDataWithoutAmbiguousViewpoints);
         menuTool->addSeparator();
         menuTool->addAction(actionVisualizePredictedData);
@@ -184,6 +188,7 @@ public:
         actionGenerateTrainingDataWithAngleDeltaForRegression->setText(QApplication::translate("MainWindowClass", "Generate Training Data With Angle Delta For Regression", 0));
         actionVisualizePredictedData->setText(QApplication::translate("MainWindowClass", "Visualize Predicted Data", 0));
         actionVisualizePredictedDataWithCameraParameters->setText(QApplication::translate("MainWindowClass", "Visualize Predicted Data With Camera Parameters", 0));
+        actionGenerateTrainingDataWithAngleDeltaAndFOV->setText(QApplication::translate("MainWindowClass", "Generate Training Data With Angle Delta And FOV", 0));
         menuFile->setTitle(QApplication::translate("MainWindowClass", "File", 0));
         menuTool->setTitle(QApplication::translate("MainWindowClass", "Tool", 0));
         menuRendering->setTitle(QApplication::translate("MainWindowClass", "Rendering", 0));
