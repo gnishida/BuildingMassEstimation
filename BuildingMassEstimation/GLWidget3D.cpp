@@ -874,14 +874,12 @@ void GLWidget3D::loadCGA(const std::string& cga_filename) {
 }
 
 void GLWidget3D::generateTrainingDataWithFixedView(const QString& cga_dir, const QString& out_dir, int numSamples, int image_width, int image_height, bool grayscale, bool centering, int cameraType, float cameraDistance, float cameraHeight, float xrot, float yrot, float fov) {
-	QString resultDir = out_dir + "\\contours\\";
-
-	if (QDir(resultDir).exists()) {
+	if (QDir(out_dir).exists()) {
 		std::cout << "Clearning output directory..." << std::endl;
-		QDir(resultDir).removeRecursively();
+		QDir(out_dir).removeRecursively();
 		std::cout << "Done." << std::endl;
 	}
-	QDir().mkpath(resultDir);
+	QDir().mkpath(out_dir);
 
 	srand(0);
 	renderManager.useShadow = false;
@@ -917,9 +915,9 @@ void GLWidget3D::generateTrainingDataWithFixedView(const QString& cga_dir, const
 	for (int i = 0; i < fileInfoList.size(); ++i) {
 		int count = 0;
 
-		if (!QDir(resultDir + fileInfoList[i].baseName()).exists()) QDir().mkdir(resultDir + fileInfoList[i].baseName());
+		if (!QDir(out_dir + "\\" + fileInfoList[i].baseName()).exists()) QDir().mkdir(out_dir + "\\" + fileInfoList[i].baseName());
 
-		QFile file(resultDir + fileInfoList[i].baseName() + "/parameters.txt");
+		QFile file(out_dir + "\\" + fileInfoList[i].baseName() + "/parameters.txt");
 		if (!file.open(QIODevice::WriteOnly)) {
 			std::cerr << "Cannot open file for writing: " << qPrintable(file.errorString()) << std::endl;
 			return;
@@ -973,7 +971,7 @@ void GLWidget3D::generateTrainingDataWithFixedView(const QString& cga_dir, const
 			}
 
 			// set filename
-			QString filename = resultDir + "/" + fileInfoList[i].baseName() + "/" + QString("image_%1.png").arg(count, 6, 10, QChar('0'));
+			QString filename = out_dir + "\\" + fileInfoList[i].baseName() + "\\" + QString("image_%1.png").arg(count, 6, 10, QChar('0'));
 			cv::imwrite(filename.toUtf8().constData(), mat);
 
 			// write all the param values to the file
@@ -1013,15 +1011,12 @@ void GLWidget3D::generateTrainingDataWithFixedView(const QString& cga_dir, const
  * @param fovMax			max of fov
  */
 void GLWidget3D::generateTrainingDataWithAngleDelta(const QString& cga_dir, const QString& out_dir, int numSamples, int image_width, int image_height, bool grayscale, bool centering, int cameraType, float cameraDistance, float cameraHeight, float xrotMean, float xrotRange, float yrotMean, float yrotRange, float fov) {
-	// get the directory where the training data will be stored
-	QString resultDir = out_dir + "\\contours\\";
-
-	if (QDir(resultDir).exists()) {
+	if (QDir(out_dir).exists()) {
 		std::cout << "Clearning output directory..." << std::endl;
-		QDir(resultDir).removeRecursively();
+		QDir(out_dir).removeRecursively();
 		std::cout << "Done." << std::endl;
 	}
-	QDir().mkpath(resultDir);
+	QDir().mkpath(out_dir);
 
 	srand(0);
 	renderManager.useShadow = false;
@@ -1040,9 +1035,9 @@ void GLWidget3D::generateTrainingDataWithAngleDelta(const QString& cga_dir, cons
 	for (int i = 0; i < fileInfoList.size(); ++i) {
 		int count = 0;
 
-		if (!QDir(resultDir + fileInfoList[i].baseName()).exists()) QDir().mkdir(resultDir + fileInfoList[i].baseName());
+		if (!QDir(out_dir + "\\" + fileInfoList[i].baseName()).exists()) QDir().mkdir(out_dir + "\\" + fileInfoList[i].baseName());
 
-		QFile file(resultDir + fileInfoList[i].baseName() + "/parameters.txt");
+		QFile file(out_dir + "\\" + fileInfoList[i].baseName() + "/parameters.txt");
 		if (!file.open(QIODevice::WriteOnly)) {
 			std::cerr << "Cannot open file for writing: " << qPrintable(file.errorString()) << std::endl;
 			return;
@@ -1119,7 +1114,7 @@ void GLWidget3D::generateTrainingDataWithAngleDelta(const QString& cga_dir, cons
 					}
 
 					// set filename
-					QString filename = resultDir + "/" + fileInfoList[i].baseName() + "/" + QString("image_%1.png").arg(count, 6, 10, QChar('0'));
+					QString filename = out_dir + "\\" + fileInfoList[i].baseName() + "\\" + QString("image_%1.png").arg(count, 6, 10, QChar('0'));
 					cv::imwrite(filename.toUtf8().constData(), mat);
 
 					// add camera parameters to the params
@@ -1165,15 +1160,12 @@ void GLWidget3D::generateTrainingDataWithAngleDelta(const QString& cga_dir, cons
 * @param fovMax			max of fov
 */
 void GLWidget3D::generateTrainingDataWithAngleDeltaAndFOV(const QString& cga_dir, const QString& out_dir, int numSamples, int image_width, int image_height, bool grayscale, bool centering, int cameraType, float cameraDistance, float cameraHeight, float xrotMean, float xrotRange, float yrotMean, float yrotRange, float fovMin, float fovMax) {
-	// get the directory where the training data will be stored
-	QString resultDir = out_dir + "\\contours\\";
-
-	if (QDir(resultDir).exists()) {
+	if (QDir(out_dir).exists()) {
 		std::cout << "Clearning output directory..." << std::endl;
-		QDir(resultDir).removeRecursively();
+		QDir(out_dir).removeRecursively();
 		std::cout << "Done." << std::endl;
 	}
-	QDir().mkpath(resultDir);
+	QDir().mkpath(out_dir);
 
 	srand(0);
 	renderManager.useShadow = false;
@@ -1192,9 +1184,9 @@ void GLWidget3D::generateTrainingDataWithAngleDeltaAndFOV(const QString& cga_dir
 	for (int i = 0; i < fileInfoList.size(); ++i) {
 		int count = 0;
 
-		if (!QDir(resultDir + fileInfoList[i].baseName()).exists()) QDir().mkdir(resultDir + fileInfoList[i].baseName());
+		if (!QDir(out_dir + "\\" + fileInfoList[i].baseName()).exists()) QDir().mkdir(out_dir + "\\" + fileInfoList[i].baseName());
 
-		QFile file(resultDir + fileInfoList[i].baseName() + "/parameters.txt");
+		QFile file(out_dir + "\\" + fileInfoList[i].baseName() + "/parameters.txt");
 		if (!file.open(QIODevice::WriteOnly)) {
 			std::cerr << "Cannot open file for writing: " << qPrintable(file.errorString()) << std::endl;
 			return;
@@ -1272,7 +1264,7 @@ void GLWidget3D::generateTrainingDataWithAngleDeltaAndFOV(const QString& cga_dir
 						}
 
 						// set filename
-						QString filename = resultDir + "/" + fileInfoList[i].baseName() + "/" + QString("image_%1.png").arg(count, 6, 10, QChar('0'));
+						QString filename = out_dir + "\\" + fileInfoList[i].baseName() + "\\" + QString("image_%1.png").arg(count, 6, 10, QChar('0'));
 						cv::imwrite(filename.toUtf8().constData(), mat);
 
 						// add camera parameters to the params
@@ -1303,14 +1295,12 @@ void GLWidget3D::generateTrainingDataWithAngleDeltaAndFOV(const QString& cga_dir
 }
 
 void GLWidget3D::generateTrainingDataWithoutAmgiousViewpoints(const QString& cga_dir, const QString& out_dir, int numSamples, int image_width, int image_height, bool grayscale, bool centering, float xrotMean, float xrotRange, float yrotMean, float yrotRange) {
-	QString resultDir = out_dir + "\\contours\\";
-
-	if (QDir(resultDir).exists()) {
+	if (QDir(out_dir).exists()) {
 		std::cout << "Clearning output directory..." << std::endl;
-		QDir(resultDir).removeRecursively();
+		QDir(out_dir).removeRecursively();
 		std::cout << "Done." << std::endl;
 	}
-	QDir().mkpath(resultDir);
+	QDir().mkpath(out_dir);
 
 	QString ambiguousDir = "results\\ambiguous\\";
 	if (QDir(ambiguousDir).exists()) {
@@ -1622,7 +1612,7 @@ void GLWidget3D::generateTrainingDataWithoutAmgiousViewpoints(const QString& cga
 	std::cout << "Generating training images..." << std::endl;
 	renderManager.renderingMode = RenderManager::RENDERING_MODE_CONTOUR;
 	for (int i = 0; i < viewpoints.size(); ++i) {
-		if (!QDir(resultDir + fileInfoList[i].baseName()).exists()) QDir().mkdir(resultDir + fileInfoList[i].baseName());
+		if (!QDir(out_dir + "\\" + fileInfoList[i].baseName()).exists()) QDir().mkdir(out_dir + "\\" + fileInfoList[i].baseName());
 
 		int count = 0;
 
@@ -1678,7 +1668,7 @@ void GLWidget3D::generateTrainingDataWithoutAmgiousViewpoints(const QString& cga
 				}
 
 				// set filename
-				QString filename = resultDir + "/" + fileInfoList[i].baseName() + "/" + QString("image_%1.png").arg(count, 6, 10, QChar('0'));
+				QString filename = out_dir + "\\" + fileInfoList[i].baseName() + "\\" + QString("image_%1.png").arg(count, 6, 10, QChar('0'));
 				cv::imwrite(filename.toUtf8().constData(), mat);
 
 				count++;

@@ -7,7 +7,7 @@ TrainingDataGenerationDialog::TrainingDataGenerationDialog(QWidget *parent)
 	ui.setupUi(this);
 
 	ui.lineEditCGADirectory->setText("..\\cga\\mass_20160329\\");
-	ui.lineEditOutputDirectory->setText("C:\\Anaconda\\caffe\\data\\contours_regression\\");
+	ui.lineEditOutputDirectory->setText("C:\\Anaconda\\caffe\\data\\contours_regression\\contours\\");
 	ui.lineEditNumSamples->setText("10");
 	ui.lineEditImageWidth->setText("128");
 	ui.lineEditImageHeight->setText("128");
