@@ -1219,8 +1219,8 @@ void GLWidget3D::generateTrainingDataWithAngleDeltaAndFOV(const QString& cga_dir
 					camera.pos.z = cameraDistance;
 				}
 
-				for (int fov_index = 0; fov_index <= 9; ++fov_index) {
-					camera.fovy = fovMin + (fovMax - fovMin) / 9.0f * fov_index;
+				for (int fov = fovMin; fov <= fovMax; ++fov) {
+					camera.fovy = fov;
 					camera.updatePMatrix(width(), height());
 
 					// randomly sample N parameter values
@@ -1268,7 +1268,7 @@ void GLWidget3D::generateTrainingDataWithAngleDeltaAndFOV(const QString& cga_dir
 						cv::imwrite(filename.toUtf8().constData(), mat);
 
 						// add camera parameters to the params
-						param_values.insert(param_values.begin(), (float)fov_index / 9.0f);
+						param_values.insert(param_values.begin(), (float)(fov - fovMin) / (fovMax - fovMin));
 						param_values.insert(param_values.begin(), (float)yrot / yrotRange);
 						param_values.insert(param_values.begin(), (float)xrot / xrotRange);
 
