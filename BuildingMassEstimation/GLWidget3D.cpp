@@ -1832,9 +1832,6 @@ void GLWidget3D::visualizePredictedData(const QString& cga_dir, const QString& o
 }
 
 void GLWidget3D::visualizePredictedDataWithCameraParameters(const QString& cga_dir, const QString& out_dir, int cameraType, float cameraDistance, float cameraHeight, float xrotMean, float xrotRange, float yrotMean, float yrotRange, float fovMin, float fovMax) {
-	// fix camera view direction and position
-	fixCamera();
-
 	for (int i = 1; i < 30; ++i) {
 		QFile predicted_results_file(QString("prediction\\predicted_results_%1.txt").arg(i));
 		if (!predicted_results_file.exists()) continue;
@@ -1951,7 +1948,7 @@ void GLWidget3D::visualizePredictedDataWithCameraParameters(const QString& cga_d
 				camera.pos.y = cameraHeight;
 				camera.pos.z = cameraDistance;
 			}
-			camera.updateMVPMatrix();
+			camera.updatePMatrix(width(), height());
 
 			// カメラパラメータを削除
 			param_values.erase(param_values.begin());
