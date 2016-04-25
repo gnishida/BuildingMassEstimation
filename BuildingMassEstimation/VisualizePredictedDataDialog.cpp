@@ -7,7 +7,7 @@ VisualizePredictedDataDialog::VisualizePredictedDataDialog(QWidget *parent)
 	ui.setupUi(this);
 
 	ui.lineEditCGADirectory->setText("..\\cga\\mass_20160329\\");
-	ui.lineEditDataDirectory->setText("C:\\Anaconda\\caffe\\data\\contours_regression\\contours\\");
+	ui.lineEditDataDirectory->setText("C:\\Anaconda\\caffe\\data\\contour_regression\\contour\\");
 	ui.radioButtonCameraTypeStreetView->setChecked(true);
 	ui.lineEditXrotMin->setText("0");
 	ui.lineEditXrotMax->setText("40");
