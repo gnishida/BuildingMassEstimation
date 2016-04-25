@@ -311,6 +311,22 @@
   </widget>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
+ <tabstops>
+  <tabstop>lineEditCGADirectory</tabstop>
+  <tabstop>pushButtonCGADirectory</tabstop>
+  <tabstop>lineEditDataDirectory</tabstop>
+  <tabstop>pushButtonDataDirectory</tabstop>
+  <tabstop>radioButtonCameraTypeStreetView</tabstop>
+  <tabstop>radioButtonCameraTypeAerialView</tabstop>
+  <tabstop>lineEditXrot</tabstop>
+  <tabstop>lineEditXrotRange</tabstop>
+  <tabstop>lineEditYrot</tabstop>
+  <tabstop>lineEditYrotRange</tabstop>
+  <tabstop>lineEditFovMin</tabstop>
+  <tabstop>lineEditFovMax</tabstop>
+  <tabstop>pushButtonOK</tabstop>
+  <tabstop>pushButtonCancel</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
 </ui>

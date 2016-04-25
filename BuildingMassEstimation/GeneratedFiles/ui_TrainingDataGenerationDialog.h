@@ -166,6 +166,24 @@ public:
         checkBoxCentering = new QCheckBox(TrainingDataGenerationDialog);
         checkBoxCentering->setObjectName(QStringLiteral("checkBoxCentering"));
         checkBoxCentering->setGeometry(QRect(460, 100, 70, 17));
+        QWidget::setTabOrder(lineEditCGADirectory, pushButtonCGADirectory);
+        QWidget::setTabOrder(pushButtonCGADirectory, lineEditOutputDirectory);
+        QWidget::setTabOrder(lineEditOutputDirectory, pushButtonOutputDirectory);
+        QWidget::setTabOrder(pushButtonOutputDirectory, lineEditNumSamples);
+        QWidget::setTabOrder(lineEditNumSamples, lineEditImageWidth);
+        QWidget::setTabOrder(lineEditImageWidth, lineEditImageHeight);
+        QWidget::setTabOrder(lineEditImageHeight, checkBoxGrayscale);
+        QWidget::setTabOrder(checkBoxGrayscale, checkBoxCentering);
+        QWidget::setTabOrder(checkBoxCentering, radioButtonCameraTypeStreetView);
+        QWidget::setTabOrder(radioButtonCameraTypeStreetView, radioButtonCameraTypeAerialView);
+        QWidget::setTabOrder(radioButtonCameraTypeAerialView, lineEditXrot);
+        QWidget::setTabOrder(lineEditXrot, lineEditXrotRange);
+        QWidget::setTabOrder(lineEditXrotRange, lineEditYrot);
+        QWidget::setTabOrder(lineEditYrot, lineEditYrotRange);
+        QWidget::setTabOrder(lineEditYrotRange, lineEditFovMin);
+        QWidget::setTabOrder(lineEditFovMin, lineEditFovMax);
+        QWidget::setTabOrder(lineEditFovMax, pushButtonOK);
+        QWidget::setTabOrder(pushButtonOK, pushButtonCancel);
 
         retranslateUi(TrainingDataGenerationDialog);
 

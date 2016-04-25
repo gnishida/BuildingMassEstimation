@@ -130,6 +130,19 @@ public:
         label_12->setObjectName(QStringLiteral("label_12"));
         label_12->setGeometry(QRect(50, 70, 71, 16));
         label_12->setAlignment(Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter);
+        QWidget::setTabOrder(lineEditCGADirectory, pushButtonCGADirectory);
+        QWidget::setTabOrder(pushButtonCGADirectory, lineEditDataDirectory);
+        QWidget::setTabOrder(lineEditDataDirectory, pushButtonDataDirectory);
+        QWidget::setTabOrder(pushButtonDataDirectory, radioButtonCameraTypeStreetView);
+        QWidget::setTabOrder(radioButtonCameraTypeStreetView, radioButtonCameraTypeAerialView);
+        QWidget::setTabOrder(radioButtonCameraTypeAerialView, lineEditXrot);
+        QWidget::setTabOrder(lineEditXrot, lineEditXrotRange);
+        QWidget::setTabOrder(lineEditXrotRange, lineEditYrot);
+        QWidget::setTabOrder(lineEditYrot, lineEditYrotRange);
+        QWidget::setTabOrder(lineEditYrotRange, lineEditFovMin);
+        QWidget::setTabOrder(lineEditFovMin, lineEditFovMax);
+        QWidget::setTabOrder(lineEditFovMax, pushButtonOK);
+        QWidget::setTabOrder(pushButtonOK, pushButtonCancel);
 
         retranslateUi(VisualizePredictedDataDialog);
 
