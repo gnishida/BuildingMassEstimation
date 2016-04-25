@@ -41,12 +41,13 @@
      <string>Tool</string>
     </property>
     <addaction name="actionGenerateTrainingDataWithFixedView"/>
-    <addaction name="actionGenerateTrainingDataWithAngleDelta"/>
-    <addaction name="actionGenerateTrainingDataWithAngleDeltaAndFOV"/>
+    <addaction name="actionGenerateTrainingDataWithRotation"/>
+    <addaction name="actionGenerateTrainingDataWithRotationAndFOV"/>
     <addaction name="actionGenerateTrainingDataWithoutAmbiguousViewpoints"/>
     <addaction name="separator"/>
     <addaction name="actionVisualizePredictedData"/>
-    <addaction name="actionVisualizePredictedDataWithCameraParameters"/>
+    <addaction name="actionVisualizePredictedDataWithRotation"/>
+    <addaction name="actionVisualizePredictedDataWithRotationAndFOV"/>
     <addaction name="separator"/>
     <addaction name="actionMCMC"/>
     <addaction name="actionMCMCAll"/>
@@ -161,9 +162,9 @@
     <string>Generate Training Data With Arbitrary Angles</string>
    </property>
   </action>
-  <action name="actionGenerateTrainingDataWithAngleDelta">
+  <action name="actionGenerateTrainingDataWithRotation">
    <property name="text">
-    <string>Generate Training Data With Angle Delta</string>
+    <string>Generate Training Data With Rotation</string>
    </property>
   </action>
   <action name="actionContourVectors">
@@ -173,7 +174,7 @@
   </action>
   <action name="actionGenerateTrainingDataWithoutAmbiguousViewpoints">
    <property name="text">
-    <string>Generate Training Data Without Ambiguous Viewpoints</string>
+    <string>Generate Training Data without Ambiguous Viewpoints</string>
    </property>
   </action>
   <action name="actionGenerateTrainingDataWithFixedViewForRegression">
@@ -188,17 +189,22 @@
   </action>
   <action name="actionVisualizePredictedData">
    <property name="text">
-    <string>Visualize Predicted Data</string>
+    <string>Visualize Predicted Data with Fixed View</string>
    </property>
   </action>
-  <action name="actionVisualizePredictedDataWithCameraParameters">
+  <action name="actionVisualizePredictedDataWithRotation">
    <property name="text">
-    <string>Visualize Predicted Data With Camera Parameters</string>
+    <string>Visualize Predicted Data With Rotation</string>
    </property>
   </action>
-  <action name="actionGenerateTrainingDataWithAngleDeltaAndFOV">
+  <action name="actionGenerateTrainingDataWithRotationAndFOV">
    <property name="text">
-    <string>Generate Training Data With Angle Delta And FOV</string>
+    <string>Generate Training Data With Rotation And FOV</string>
+   </property>
+  </action>
+  <action name="actionVisualizePredictedDataWithRotationAndFOV">
+   <property name="text">
+    <string>Visualize Predicted Data with Rotation And FOV</string>
    </property>
   </action>
  </widget>

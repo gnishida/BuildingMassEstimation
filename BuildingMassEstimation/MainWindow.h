@@ -22,11 +22,12 @@ public slots:
 	void onSaveContour();
 	void onResetCamera();
 	void onGenerateTrainingDataWithFixedView();
-	void onGenerateTrainingDataWithAngleDelta();
-	void onGenerateTrainingDataWithAngleDeltaAndFOV();
+	void onGenerateTrainingDataWithRotation();
+	void onGenerateTrainingDataWithRotationAndFOV();
 	void onGenerateTrainingDataWithoutAmgiousViewpoints();
 	void onVisualizePredictedData();
-	void onVisualizePredictedDataWithCameraParameters();
+	void onVisualizePredictedDataWithRotation();
+	void onVisualizePredictedDataWithRotationAndFOV();
 	void onMCMC();
 	void onMCMCAll();
 	void onComputeVanishingPoints();
