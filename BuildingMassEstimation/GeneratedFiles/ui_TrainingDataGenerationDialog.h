@@ -40,13 +40,11 @@ public:
     QLineEdit *lineEditImageHeight;
     QCheckBox *checkBoxGrayscale;
     QLabel *label_6;
-    QLineEdit *lineEditXrot;
-    QLabel *label_7;
-    QLineEdit *lineEditXrotRange;
+    QLineEdit *lineEditXrotMin;
+    QLineEdit *lineEditXrotMax;
     QLabel *label_8;
-    QLineEdit *lineEditYrot;
-    QLabel *label_9;
-    QLineEdit *lineEditYrotRange;
+    QLineEdit *lineEditYrotMin;
+    QLineEdit *lineEditYrotMax;
     QPushButton *pushButtonOK;
     QPushButton *pushButtonCancel;
     QLabel *label_10;
@@ -57,6 +55,8 @@ public:
     QRadioButton *radioButtonCameraTypeStreetView;
     QRadioButton *radioButtonCameraTypeAerialView;
     QCheckBox *checkBoxCentering;
+    QLabel *label_13;
+    QLabel *label_14;
 
     void setupUi(QDialog *TrainingDataGenerationDialog)
     {
@@ -109,30 +109,22 @@ public:
         label_6->setObjectName(QStringLiteral("label_6"));
         label_6->setGeometry(QRect(60, 160, 71, 16));
         label_6->setAlignment(Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter);
-        lineEditXrot = new QLineEdit(TrainingDataGenerationDialog);
-        lineEditXrot->setObjectName(QStringLiteral("lineEditXrot"));
-        lineEditXrot->setGeometry(QRect(140, 160, 61, 20));
-        label_7 = new QLabel(TrainingDataGenerationDialog);
-        label_7->setObjectName(QStringLiteral("label_7"));
-        label_7->setGeometry(QRect(208, 160, 16, 20));
-        label_7->setAlignment(Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter);
-        lineEditXrotRange = new QLineEdit(TrainingDataGenerationDialog);
-        lineEditXrotRange->setObjectName(QStringLiteral("lineEditXrotRange"));
-        lineEditXrotRange->setGeometry(QRect(230, 160, 61, 20));
+        lineEditXrotMin = new QLineEdit(TrainingDataGenerationDialog);
+        lineEditXrotMin->setObjectName(QStringLiteral("lineEditXrotMin"));
+        lineEditXrotMin->setGeometry(QRect(140, 160, 61, 20));
+        lineEditXrotMax = new QLineEdit(TrainingDataGenerationDialog);
+        lineEditXrotMax->setObjectName(QStringLiteral("lineEditXrotMax"));
+        lineEditXrotMax->setGeometry(QRect(230, 160, 61, 20));
         label_8 = new QLabel(TrainingDataGenerationDialog);
         label_8->setObjectName(QStringLiteral("label_8"));
         label_8->setGeometry(QRect(60, 190, 71, 16));
         label_8->setAlignment(Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter);
-        lineEditYrot = new QLineEdit(TrainingDataGenerationDialog);
-        lineEditYrot->setObjectName(QStringLiteral("lineEditYrot"));
-        lineEditYrot->setGeometry(QRect(140, 190, 61, 20));
-        label_9 = new QLabel(TrainingDataGenerationDialog);
-        label_9->setObjectName(QStringLiteral("label_9"));
-        label_9->setGeometry(QRect(208, 190, 16, 20));
-        label_9->setAlignment(Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter);
-        lineEditYrotRange = new QLineEdit(TrainingDataGenerationDialog);
-        lineEditYrotRange->setObjectName(QStringLiteral("lineEditYrotRange"));
-        lineEditYrotRange->setGeometry(QRect(230, 190, 61, 20));
+        lineEditYrotMin = new QLineEdit(TrainingDataGenerationDialog);
+        lineEditYrotMin->setObjectName(QStringLiteral("lineEditYrotMin"));
+        lineEditYrotMin->setGeometry(QRect(140, 190, 61, 20));
+        lineEditYrotMax = new QLineEdit(TrainingDataGenerationDialog);
+        lineEditYrotMax->setObjectName(QStringLiteral("lineEditYrotMax"));
+        lineEditYrotMax->setGeometry(QRect(230, 190, 61, 20));
         pushButtonOK = new QPushButton(TrainingDataGenerationDialog);
         pushButtonOK->setObjectName(QStringLiteral("pushButtonOK"));
         pushButtonOK->setGeometry(QRect(330, 250, 91, 31));
@@ -166,6 +158,14 @@ public:
         checkBoxCentering = new QCheckBox(TrainingDataGenerationDialog);
         checkBoxCentering->setObjectName(QStringLiteral("checkBoxCentering"));
         checkBoxCentering->setGeometry(QRect(460, 100, 70, 17));
+        label_13 = new QLabel(TrainingDataGenerationDialog);
+        label_13->setObjectName(QStringLiteral("label_13"));
+        label_13->setGeometry(QRect(203, 160, 16, 20));
+        label_13->setAlignment(Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter);
+        label_14 = new QLabel(TrainingDataGenerationDialog);
+        label_14->setObjectName(QStringLiteral("label_14"));
+        label_14->setGeometry(QRect(203, 190, 16, 20));
+        label_14->setAlignment(Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter);
         QWidget::setTabOrder(lineEditCGADirectory, pushButtonCGADirectory);
         QWidget::setTabOrder(pushButtonCGADirectory, lineEditOutputDirectory);
         QWidget::setTabOrder(lineEditOutputDirectory, pushButtonOutputDirectory);
@@ -176,11 +176,11 @@ public:
         QWidget::setTabOrder(checkBoxGrayscale, checkBoxCentering);
         QWidget::setTabOrder(checkBoxCentering, radioButtonCameraTypeStreetView);
         QWidget::setTabOrder(radioButtonCameraTypeStreetView, radioButtonCameraTypeAerialView);
-        QWidget::setTabOrder(radioButtonCameraTypeAerialView, lineEditXrot);
-        QWidget::setTabOrder(lineEditXrot, lineEditXrotRange);
-        QWidget::setTabOrder(lineEditXrotRange, lineEditYrot);
-        QWidget::setTabOrder(lineEditYrot, lineEditYrotRange);
-        QWidget::setTabOrder(lineEditYrotRange, lineEditFovMin);
+        QWidget::setTabOrder(radioButtonCameraTypeAerialView, lineEditXrotMin);
+        QWidget::setTabOrder(lineEditXrotMin, lineEditXrotMax);
+        QWidget::setTabOrder(lineEditXrotMax, lineEditYrotMin);
+        QWidget::setTabOrder(lineEditYrotMin, lineEditYrotMax);
+        QWidget::setTabOrder(lineEditYrotMax, lineEditFovMin);
         QWidget::setTabOrder(lineEditFovMin, lineEditFovMax);
         QWidget::setTabOrder(lineEditFovMax, pushButtonOK);
         QWidget::setTabOrder(pushButtonOK, pushButtonCancel);
@@ -202,9 +202,7 @@ public:
         label_5->setText(QApplication::translate("TrainingDataGenerationDialog", "Image height:", 0));
         checkBoxGrayscale->setText(QApplication::translate("TrainingDataGenerationDialog", "Grayscale", 0));
         label_6->setText(QApplication::translate("TrainingDataGenerationDialog", "Xrot:", 0));
-        label_7->setText(QApplication::translate("TrainingDataGenerationDialog", "+/-", 0));
         label_8->setText(QApplication::translate("TrainingDataGenerationDialog", "Yrot:", 0));
-        label_9->setText(QApplication::translate("TrainingDataGenerationDialog", "+/-", 0));
         pushButtonOK->setText(QApplication::translate("TrainingDataGenerationDialog", "OK", 0));
         pushButtonCancel->setText(QApplication::translate("TrainingDataGenerationDialog", "Cancel", 0));
         label_10->setText(QApplication::translate("TrainingDataGenerationDialog", "Field of view:", 0));
@@ -213,6 +211,8 @@ public:
         radioButtonCameraTypeStreetView->setText(QApplication::translate("TrainingDataGenerationDialog", "Street view", 0));
         radioButtonCameraTypeAerialView->setText(QApplication::translate("TrainingDataGenerationDialog", "Aerial view", 0));
         checkBoxCentering->setText(QApplication::translate("TrainingDataGenerationDialog", "Centering", 0));
+        label_13->setText(QApplication::translate("TrainingDataGenerationDialog", "~", 0));
+        label_14->setText(QApplication::translate("TrainingDataGenerationDialog", "~", 0));
     } // retranslateUi
 
 };

@@ -192,7 +192,7 @@
     <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
    </property>
   </widget>
-  <widget class="QLineEdit" name="lineEditXrot">
+  <widget class="QLineEdit" name="lineEditXrotMin">
    <property name="geometry">
     <rect>
      <x>140</x>
@@ -202,23 +202,7 @@
     </rect>
    </property>
   </widget>
-  <widget class="QLabel" name="label_7">
-   <property name="geometry">
-    <rect>
-     <x>208</x>
-     <y>160</y>
-     <width>16</width>
-     <height>20</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>+/-</string>
-   </property>
-   <property name="alignment">
-    <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-   </property>
-  </widget>
-  <widget class="QLineEdit" name="lineEditXrotRange">
+  <widget class="QLineEdit" name="lineEditXrotMax">
    <property name="geometry">
     <rect>
      <x>230</x>
@@ -244,7 +228,7 @@
     <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
    </property>
   </widget>
-  <widget class="QLineEdit" name="lineEditYrot">
+  <widget class="QLineEdit" name="lineEditYrotMin">
    <property name="geometry">
     <rect>
      <x>140</x>
@@ -254,23 +238,7 @@
     </rect>
    </property>
   </widget>
-  <widget class="QLabel" name="label_9">
-   <property name="geometry">
-    <rect>
-     <x>208</x>
-     <y>190</y>
-     <width>16</width>
-     <height>20</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>+/-</string>
-   </property>
-   <property name="alignment">
-    <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-   </property>
-  </widget>
-  <widget class="QLineEdit" name="lineEditYrotRange">
+  <widget class="QLineEdit" name="lineEditYrotMax">
    <property name="geometry">
     <rect>
      <x>230</x>
@@ -413,6 +381,38 @@
     <string>Centering</string>
    </property>
   </widget>
+  <widget class="QLabel" name="label_13">
+   <property name="geometry">
+    <rect>
+     <x>203</x>
+     <y>160</y>
+     <width>16</width>
+     <height>20</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>~</string>
+   </property>
+   <property name="alignment">
+    <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+   </property>
+  </widget>
+  <widget class="QLabel" name="label_14">
+   <property name="geometry">
+    <rect>
+     <x>203</x>
+     <y>190</y>
+     <width>16</width>
+     <height>20</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>~</string>
+   </property>
+   <property name="alignment">
+    <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+   </property>
+  </widget>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <tabstops>
@@ -427,10 +427,10 @@
   <tabstop>checkBoxCentering</tabstop>
   <tabstop>radioButtonCameraTypeStreetView</tabstop>
   <tabstop>radioButtonCameraTypeAerialView</tabstop>
-  <tabstop>lineEditXrot</tabstop>
-  <tabstop>lineEditXrotRange</tabstop>
-  <tabstop>lineEditYrot</tabstop>
-  <tabstop>lineEditYrotRange</tabstop>
+  <tabstop>lineEditXrotMin</tabstop>
+  <tabstop>lineEditXrotMax</tabstop>
+  <tabstop>lineEditYrotMin</tabstop>
+  <tabstop>lineEditYrotMax</tabstop>
   <tabstop>lineEditFovMin</tabstop>
   <tabstop>lineEditFovMax</tabstop>
   <tabstop>pushButtonOK</tabstop>

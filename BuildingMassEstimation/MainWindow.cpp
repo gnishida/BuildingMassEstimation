@@ -73,8 +73,8 @@ void MainWindow::onResetCamera() {
 
 void MainWindow::onGenerateTrainingDataWithFixedView() {
 	TrainingDataGenerationDialog dlg;
-	dlg.ui.lineEditXrotRange->setEnabled(false);
-	dlg.ui.lineEditYrotRange->setEnabled(false);
+	dlg.ui.lineEditXrotMax->setEnabled(false);
+	dlg.ui.lineEditYrotMax->setEnabled(false);
 	dlg.ui.lineEditFovMax->setEnabled(false);
 	if (dlg.exec() && !dlg.ui.lineEditCGADirectory->text().isEmpty() && !dlg.ui.lineEditOutputDirectory->text().isEmpty()) {
 		int numSamples = dlg.ui.lineEditNumSamples->text().toInt();
@@ -92,11 +92,11 @@ void MainWindow::onGenerateTrainingDataWithFixedView() {
 		if (dlg.ui.radioButtonCameraTypeAerialView->isChecked()) {
 			cameraType = 1;
 		}
-		float xrot = dlg.ui.lineEditXrot->text().toFloat();
-		float yrot = dlg.ui.lineEditYrot->text().toFloat();
+		float xrotMin = dlg.ui.lineEditXrotMin->text().toFloat();
+		float yrotMin = dlg.ui.lineEditYrotMin->text().toFloat();
 		float fovMin = dlg.ui.lineEditFovMin->text().toFloat();
 
-		glWidget3D->generateTrainingDataWithFixedView(dlg.ui.lineEditCGADirectory->text(), dlg.ui.lineEditOutputDirectory->text(), numSamples, imageWidth, imageHeight, grayscale, centering, cameraType, 70.0f, 0.0f, xrot, yrot, fovMin);
+		glWidget3D->generateTrainingData(dlg.ui.lineEditCGADirectory->text(), dlg.ui.lineEditOutputDirectory->text(), numSamples, imageWidth, imageHeight, grayscale, centering, cameraType, 70.0f, 0.0f, xrotMin, xrotMin, yrotMin, yrotMin, fovMin, fovMin);
 	}
 }
 
@@ -119,13 +119,13 @@ void MainWindow::onGenerateTrainingDataWithAngleDelta() {
 		if (dlg.ui.radioButtonCameraTypeAerialView->isChecked()) {
 			cameraType = 1;
 		}
-		float xrot = dlg.ui.lineEditXrot->text().toFloat();
-		float xrotRange = dlg.ui.lineEditXrotRange->text().toFloat() * 2;
-		float yrot = dlg.ui.lineEditYrot->text().toFloat();
-		float yrotRange = dlg.ui.lineEditYrotRange->text().toFloat() * 2;
+		float xrotMin = dlg.ui.lineEditXrotMin->text().toFloat();
+		float xrotMax = dlg.ui.lineEditXrotMax->text().toFloat() * 2;
+		float yrotMin = dlg.ui.lineEditYrotMin->text().toFloat();
+		float yrotMax = dlg.ui.lineEditYrotMax->text().toFloat() * 2;
 		float fovMin = dlg.ui.lineEditFovMin->text().toFloat();
 
-		glWidget3D->generateTrainingDataWithAngleDelta(dlg.ui.lineEditCGADirectory->text(), dlg.ui.lineEditOutputDirectory->text(), numSamples, imageWidth, imageHeight, grayscale, centering, cameraType, 70.0f, 0.0f, xrot, xrotRange, yrot, yrotRange, fovMin);
+		glWidget3D->generateTrainingData(dlg.ui.lineEditCGADirectory->text(), dlg.ui.lineEditOutputDirectory->text(), numSamples, imageWidth, imageHeight, grayscale, centering, cameraType, 70.0f, 0.0f, xrotMin, xrotMax, yrotMin, yrotMax, fovMin, fovMin);
 	}
 }
 
@@ -147,14 +147,14 @@ void MainWindow::onGenerateTrainingDataWithAngleDeltaAndFOV() {
 		if (dlg.ui.radioButtonCameraTypeAerialView->isChecked()) {
 			cameraType = 1;
 		}
-		float xrot = dlg.ui.lineEditXrot->text().toFloat();
-		float xrotRange = dlg.ui.lineEditXrotRange->text().toFloat() * 2;
-		float yrot = dlg.ui.lineEditYrot->text().toFloat();
-		float yrotRange = dlg.ui.lineEditYrotRange->text().toFloat() * 2;
+		float xrotMin = dlg.ui.lineEditXrotMin->text().toFloat();
+		float xrotMax = dlg.ui.lineEditXrotMax->text().toFloat() * 2;
+		float yrotMin = dlg.ui.lineEditYrotMin->text().toFloat();
+		float yrotMax = dlg.ui.lineEditYrotMax->text().toFloat() * 2;
 		float fovMin = dlg.ui.lineEditFovMin->text().toFloat();
 		float fovMax = dlg.ui.lineEditFovMax->text().toFloat();
 
-		glWidget3D->generateTrainingDataWithAngleDeltaAndFOV(dlg.ui.lineEditCGADirectory->text(), dlg.ui.lineEditOutputDirectory->text(), numSamples, imageWidth, imageHeight, grayscale, centering, cameraType, 70.0f, 0.0f, xrot, xrotRange, yrot, yrotRange, fovMin, fovMax);
+		glWidget3D->generateTrainingData(dlg.ui.lineEditCGADirectory->text(), dlg.ui.lineEditOutputDirectory->text(), numSamples, imageWidth, imageHeight, grayscale, centering, cameraType, 70.0f, 0.0f, xrotMin, xrotMax, yrotMin, yrotMax, fovMin, fovMax);
 	}
 }
 
@@ -172,30 +172,30 @@ void MainWindow::onGenerateTrainingDataWithoutAmgiousViewpoints() {
 		if (dlg.ui.checkBoxCentering->isChecked()) {
 			centering = true;
 		}
-		float xrot = dlg.ui.lineEditXrot->text().toFloat();
-		float xrotRange = dlg.ui.lineEditXrotRange->text().toFloat() * 2;
-		float yrot = dlg.ui.lineEditYrot->text().toFloat();
-		float yrotRange = dlg.ui.lineEditYrotRange->text().toFloat() * 2;
+		float xrotMin = dlg.ui.lineEditXrotMin->text().toFloat();
+		float xrotMax = dlg.ui.lineEditXrotMax->text().toFloat() * 2;
+		float yrotMin = dlg.ui.lineEditYrotMin->text().toFloat();
+		float yrotMax = dlg.ui.lineEditYrotMax->text().toFloat() * 2;
 
-		glWidget3D->generateTrainingDataWithoutAmgiousViewpoints(dlg.ui.lineEditCGADirectory->text(), dlg.ui.lineEditOutputDirectory->text(), numSamples, imageWidth, imageHeight, grayscale, centering, xrot, xrotRange, yrot, yrotRange);
+		glWidget3D->generateTrainingDataWithoutAmgiousViewpoints(dlg.ui.lineEditCGADirectory->text(), dlg.ui.lineEditOutputDirectory->text(), numSamples, imageWidth, imageHeight, grayscale, centering, xrotMin, xrotMax, yrotMin, yrotMax);
 	}
 }
 
 void MainWindow::onVisualizePredictedData() {
 	VisualizePredictedDataDialog dlg;
-	dlg.ui.lineEditXrotRange->setEnabled(false);
-	dlg.ui.lineEditYrotRange->setEnabled(false);
+	dlg.ui.lineEditXrotMax->setEnabled(false);
+	dlg.ui.lineEditYrotMax->setEnabled(false);
 	dlg.ui.lineEditFovMax->setEnabled(false);
 	if (dlg.exec() && !dlg.ui.lineEditCGADirectory->text().isEmpty() && !dlg.ui.lineEditDataDirectory->text().isEmpty()) {
 		int cameraType = 0;
 		if (dlg.ui.radioButtonCameraTypeAerialView->isChecked()) {
 			cameraType = 1;
 		}
-		float xrot = dlg.ui.lineEditXrot->text().toFloat();
-		float yrot = dlg.ui.lineEditYrot->text().toFloat();
+		float xrot = dlg.ui.lineEditXrotMin->text().toFloat();
+		float yrot = dlg.ui.lineEditYrotMin->text().toFloat();
 		float fov = dlg.ui.lineEditFovMin->text().toFloat();
 
-		glWidget3D->visualizePredictedData(dlg.ui.lineEditCGADirectory->text(), dlg.ui.lineEditDataDirectory->text(), cameraType, 70, 0, xrot, yrot, fov);
+		glWidget3D->visualizePredictedDataWithFixedView(dlg.ui.lineEditCGADirectory->text(), dlg.ui.lineEditDataDirectory->text(), cameraType, 70, 0, xrot, yrot, fov);
 	}
 }
 
@@ -206,14 +206,14 @@ void MainWindow::onVisualizePredictedDataWithCameraParameters() {
 		if (dlg.ui.radioButtonCameraTypeAerialView->isChecked()) {
 			cameraType = 1;
 		}
-		float xrot = dlg.ui.lineEditXrot->text().toFloat();
-		float xrotRange = dlg.ui.lineEditXrotRange->text().toFloat() * 2;
-		float yrot = dlg.ui.lineEditYrot->text().toFloat();
-		float yrotRange = dlg.ui.lineEditYrotRange->text().toFloat() * 2;
+		float xrotMin = dlg.ui.lineEditXrotMin->text().toFloat();
+		float xrotMax = dlg.ui.lineEditXrotMax->text().toFloat() * 2;
+		float yrotMin = dlg.ui.lineEditYrotMin->text().toFloat();
+		float yrotMax = dlg.ui.lineEditYrotMax->text().toFloat() * 2;
 		float fovMin = dlg.ui.lineEditFovMin->text().toFloat();
 		float fovMax = dlg.ui.lineEditFovMax->text().toFloat();
 
-		glWidget3D->visualizePredictedDataWithCameraParameters(dlg.ui.lineEditCGADirectory->text(), dlg.ui.lineEditDataDirectory->text(), cameraType, 70, 0, xrot, xrotRange, yrot, yrotRange, fovMin, fovMax);
+		glWidget3D->visualizePredictedDataWithRotation(dlg.ui.lineEditCGADirectory->text(), dlg.ui.lineEditDataDirectory->text(), cameraType, 70, 0, xrotMin, xrotMax, yrotMin, yrotMax, fovMin, fovMax);
 	}
 }
 
