@@ -938,10 +938,6 @@ void GLWidget3D::generateTrainingData(const QString& cga_dir, const QString& out
 		for (int yrot = yrotMin; yrot <= yrotMax; ++yrot) {
 			camera.yrot = yrot;
 
-			// show the progress
-			printf("\rGrammar: %s, count = %d", fileInfoList[i].baseName().toUtf8().constData(), count + 1);
-			fflush(stdout);
-
 			// rotate the camera around x axis within the range
 			for (int xrot = xrotMin; xrot <= xrotMax; ++xrot) {
 				camera.xrot = xrot;
@@ -1029,6 +1025,10 @@ void GLWidget3D::generateTrainingData(const QString& cga_dir, const QString& out
 						out << "\n";
 
 						count++;
+
+						// show the progress
+						printf("\rGrammar: %s, count = %d", fileInfoList[i].baseName().toUtf8().constData(), count);
+						fflush(stdout);
 					}
 				}
 			}
