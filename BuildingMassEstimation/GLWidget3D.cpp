@@ -1263,8 +1263,13 @@ void GLWidget3D::generateTrainingDataWithAngleDeltaAndFOV(const QString& cga_dir
 							cv::cvtColor(mat, mat, CV_BGR2GRAY);
 						}
 
+						// create the subfolder
+						int subfolder_idx = count / 100000;
+						QString subfolder_name = QString("%1").arg(subfolder_idx, 3, 10, QChar('0'));
+						if (!QDir(out_dir + "\\" + fileInfoList[i].baseName() + "\\" + subfolder_name).exists()) QDir().mkdir(out_dir + "\\" + fileInfoList[i].baseName() + "\\" + subfolder_name);
+
 						// set filename
-						QString filename = out_dir + "\\" + fileInfoList[i].baseName() + "\\" + QString("image_%1.png").arg(count, 6, 10, QChar('0'));
+						QString filename = out_dir + "\\" + fileInfoList[i].baseName() + "\\" + subfolder_name + "\\" + QString("image_%1.png").arg(count, 6, 10, QChar('0'));
 						cv::imwrite(filename.toUtf8().constData(), mat);
 
 						// add camera parameters to the params
