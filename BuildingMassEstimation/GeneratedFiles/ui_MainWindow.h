@@ -27,7 +27,6 @@ class Ui_MainWindowClass
 {
 public:
     QAction *actionExit;
-    QAction *actionGenerateTrainingDataWithFixedView;
     QAction *actionMCMC;
     QAction *actionSaveImage;
     QAction *actionRenderingBasic;
@@ -39,16 +38,10 @@ public:
     QAction *actionLoadImage;
     QAction *actionSaveContour;
     QAction *actionComputeVanishingPoints;
-    QAction *actionGenerateTrainingDataWithArbitraryAngles;
-    QAction *actionGenerateTrainingDataWithRotation;
     QAction *actionContourVectors;
     QAction *actionGenerateTrainingDataWithoutAmbiguousViewpoints;
-    QAction *actionGenerateTrainingDataWithFixedViewForRegression;
-    QAction *actionGenerateTrainingDataWithAngleDeltaForRegression;
+    QAction *actionGenerateTrainingData;
     QAction *actionVisualizePredictedData;
-    QAction *actionVisualizePredictedDataWithRotation;
-    QAction *actionGenerateTrainingDataWithRotationAndFOV;
-    QAction *actionVisualizePredictedDataWithRotationAndFOV;
     QWidget *centralWidget;
     QMenuBar *menuBar;
     QMenu *menuFile;
@@ -64,8 +57,6 @@ public:
         MainWindowClass->resize(1024, 800);
         actionExit = new QAction(MainWindowClass);
         actionExit->setObjectName(QStringLiteral("actionExit"));
-        actionGenerateTrainingDataWithFixedView = new QAction(MainWindowClass);
-        actionGenerateTrainingDataWithFixedView->setObjectName(QStringLiteral("actionGenerateTrainingDataWithFixedView"));
         actionMCMC = new QAction(MainWindowClass);
         actionMCMC->setObjectName(QStringLiteral("actionMCMC"));
         actionSaveImage = new QAction(MainWindowClass);
@@ -91,26 +82,14 @@ public:
         actionSaveContour->setObjectName(QStringLiteral("actionSaveContour"));
         actionComputeVanishingPoints = new QAction(MainWindowClass);
         actionComputeVanishingPoints->setObjectName(QStringLiteral("actionComputeVanishingPoints"));
-        actionGenerateTrainingDataWithArbitraryAngles = new QAction(MainWindowClass);
-        actionGenerateTrainingDataWithArbitraryAngles->setObjectName(QStringLiteral("actionGenerateTrainingDataWithArbitraryAngles"));
-        actionGenerateTrainingDataWithRotation = new QAction(MainWindowClass);
-        actionGenerateTrainingDataWithRotation->setObjectName(QStringLiteral("actionGenerateTrainingDataWithRotation"));
         actionContourVectors = new QAction(MainWindowClass);
         actionContourVectors->setObjectName(QStringLiteral("actionContourVectors"));
         actionGenerateTrainingDataWithoutAmbiguousViewpoints = new QAction(MainWindowClass);
         actionGenerateTrainingDataWithoutAmbiguousViewpoints->setObjectName(QStringLiteral("actionGenerateTrainingDataWithoutAmbiguousViewpoints"));
-        actionGenerateTrainingDataWithFixedViewForRegression = new QAction(MainWindowClass);
-        actionGenerateTrainingDataWithFixedViewForRegression->setObjectName(QStringLiteral("actionGenerateTrainingDataWithFixedViewForRegression"));
-        actionGenerateTrainingDataWithAngleDeltaForRegression = new QAction(MainWindowClass);
-        actionGenerateTrainingDataWithAngleDeltaForRegression->setObjectName(QStringLiteral("actionGenerateTrainingDataWithAngleDeltaForRegression"));
+        actionGenerateTrainingData = new QAction(MainWindowClass);
+        actionGenerateTrainingData->setObjectName(QStringLiteral("actionGenerateTrainingData"));
         actionVisualizePredictedData = new QAction(MainWindowClass);
         actionVisualizePredictedData->setObjectName(QStringLiteral("actionVisualizePredictedData"));
-        actionVisualizePredictedDataWithRotation = new QAction(MainWindowClass);
-        actionVisualizePredictedDataWithRotation->setObjectName(QStringLiteral("actionVisualizePredictedDataWithRotation"));
-        actionGenerateTrainingDataWithRotationAndFOV = new QAction(MainWindowClass);
-        actionGenerateTrainingDataWithRotationAndFOV->setObjectName(QStringLiteral("actionGenerateTrainingDataWithRotationAndFOV"));
-        actionVisualizePredictedDataWithRotationAndFOV = new QAction(MainWindowClass);
-        actionVisualizePredictedDataWithRotationAndFOV->setObjectName(QStringLiteral("actionVisualizePredictedDataWithRotationAndFOV"));
         centralWidget = new QWidget(MainWindowClass);
         centralWidget->setObjectName(QStringLiteral("centralWidget"));
         MainWindowClass->setCentralWidget(centralWidget);
@@ -142,14 +121,10 @@ public:
         menuFile->addAction(actionResetCamera);
         menuFile->addSeparator();
         menuFile->addAction(actionExit);
-        menuTool->addAction(actionGenerateTrainingDataWithFixedView);
-        menuTool->addAction(actionGenerateTrainingDataWithRotation);
-        menuTool->addAction(actionGenerateTrainingDataWithRotationAndFOV);
+        menuTool->addAction(actionGenerateTrainingData);
         menuTool->addAction(actionGenerateTrainingDataWithoutAmbiguousViewpoints);
         menuTool->addSeparator();
         menuTool->addAction(actionVisualizePredictedData);
-        menuTool->addAction(actionVisualizePredictedDataWithRotation);
-        menuTool->addAction(actionVisualizePredictedDataWithRotationAndFOV);
         menuTool->addSeparator();
         menuTool->addAction(actionMCMC);
         menuTool->addAction(actionMCMCAll);
@@ -170,7 +145,6 @@ public:
     {
         MainWindowClass->setWindowTitle(QApplication::translate("MainWindowClass", "MainWindow", 0));
         actionExit->setText(QApplication::translate("MainWindowClass", "Exit", 0));
-        actionGenerateTrainingDataWithFixedView->setText(QApplication::translate("MainWindowClass", "Generate Training Data With Fixed View", 0));
         actionMCMC->setText(QApplication::translate("MainWindowClass", "MCMC", 0));
         actionSaveImage->setText(QApplication::translate("MainWindowClass", "Save Image", 0));
         actionSaveImage->setShortcut(QApplication::translate("MainWindowClass", "Ctrl+S", 0));
@@ -184,16 +158,10 @@ public:
         actionLoadImage->setText(QApplication::translate("MainWindowClass", "Load Image", 0));
         actionSaveContour->setText(QApplication::translate("MainWindowClass", "Save Contour", 0));
         actionComputeVanishingPoints->setText(QApplication::translate("MainWindowClass", "Compute Vanishing Points", 0));
-        actionGenerateTrainingDataWithArbitraryAngles->setText(QApplication::translate("MainWindowClass", "Generate Training Data With Arbitrary Angles", 0));
-        actionGenerateTrainingDataWithRotation->setText(QApplication::translate("MainWindowClass", "Generate Training Data With Rotation", 0));
         actionContourVectors->setText(QApplication::translate("MainWindowClass", "Contour Vectors", 0));
         actionGenerateTrainingDataWithoutAmbiguousViewpoints->setText(QApplication::translate("MainWindowClass", "Generate Training Data without Ambiguous Viewpoints", 0));
-        actionGenerateTrainingDataWithFixedViewForRegression->setText(QApplication::translate("MainWindowClass", "Generate Training Data With Fixed View For Regression", 0));
-        actionGenerateTrainingDataWithAngleDeltaForRegression->setText(QApplication::translate("MainWindowClass", "Generate Training Data With Angle Delta For Regression", 0));
-        actionVisualizePredictedData->setText(QApplication::translate("MainWindowClass", "Visualize Predicted Data with Fixed View", 0));
-        actionVisualizePredictedDataWithRotation->setText(QApplication::translate("MainWindowClass", "Visualize Predicted Data With Rotation", 0));
-        actionGenerateTrainingDataWithRotationAndFOV->setText(QApplication::translate("MainWindowClass", "Generate Training Data With Rotation And FOV", 0));
-        actionVisualizePredictedDataWithRotationAndFOV->setText(QApplication::translate("MainWindowClass", "Visualize Predicted Data with Rotation And FOV", 0));
+        actionGenerateTrainingData->setText(QApplication::translate("MainWindowClass", "Generate Training Data", 0));
+        actionVisualizePredictedData->setText(QApplication::translate("MainWindowClass", "Visualize Predicted Data", 0));
         menuFile->setTitle(QApplication::translate("MainWindowClass", "File", 0));
         menuTool->setTitle(QApplication::translate("MainWindowClass", "Tool", 0));
         menuRendering->setTitle(QApplication::translate("MainWindowClass", "Rendering", 0));

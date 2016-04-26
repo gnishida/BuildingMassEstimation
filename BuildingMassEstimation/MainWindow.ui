@@ -40,14 +40,10 @@
     <property name="title">
      <string>Tool</string>
     </property>
-    <addaction name="actionGenerateTrainingDataWithFixedView"/>
-    <addaction name="actionGenerateTrainingDataWithRotation"/>
-    <addaction name="actionGenerateTrainingDataWithRotationAndFOV"/>
+    <addaction name="actionGenerateTrainingData"/>
     <addaction name="actionGenerateTrainingDataWithoutAmbiguousViewpoints"/>
     <addaction name="separator"/>
     <addaction name="actionVisualizePredictedData"/>
-    <addaction name="actionVisualizePredictedDataWithRotation"/>
-    <addaction name="actionVisualizePredictedDataWithRotationAndFOV"/>
     <addaction name="separator"/>
     <addaction name="actionMCMC"/>
     <addaction name="actionMCMCAll"/>
@@ -80,11 +76,6 @@
   <action name="actionExit">
    <property name="text">
     <string>Exit</string>
-   </property>
-  </action>
-  <action name="actionGenerateTrainingDataWithFixedView">
-   <property name="text">
-    <string>Generate Training Data With Fixed View</string>
    </property>
   </action>
   <action name="actionMCMC">
@@ -157,16 +148,6 @@
     <string>Compute Vanishing Points</string>
    </property>
   </action>
-  <action name="actionGenerateTrainingDataWithArbitraryAngles">
-   <property name="text">
-    <string>Generate Training Data With Arbitrary Angles</string>
-   </property>
-  </action>
-  <action name="actionGenerateTrainingDataWithRotation">
-   <property name="text">
-    <string>Generate Training Data With Rotation</string>
-   </property>
-  </action>
   <action name="actionContourVectors">
    <property name="text">
     <string>Contour Vectors</string>
@@ -177,34 +158,14 @@
     <string>Generate Training Data without Ambiguous Viewpoints</string>
    </property>
   </action>
-  <action name="actionGenerateTrainingDataWithFixedViewForRegression">
+  <action name="actionGenerateTrainingData">
    <property name="text">
-    <string>Generate Training Data With Fixed View For Regression</string>
-   </property>
-  </action>
-  <action name="actionGenerateTrainingDataWithAngleDeltaForRegression">
-   <property name="text">
-    <string>Generate Training Data With Angle Delta For Regression</string>
+    <string>Generate Training Data</string>
    </property>
   </action>
   <action name="actionVisualizePredictedData">
    <property name="text">
-    <string>Visualize Predicted Data with Fixed View</string>
-   </property>
-  </action>
-  <action name="actionVisualizePredictedDataWithRotation">
-   <property name="text">
-    <string>Visualize Predicted Data With Rotation</string>
-   </property>
-  </action>
-  <action name="actionGenerateTrainingDataWithRotationAndFOV">
-   <property name="text">
-    <string>Generate Training Data With Rotation And FOV</string>
-   </property>
-  </action>
-  <action name="actionVisualizePredictedDataWithRotationAndFOV">
-   <property name="text">
-    <string>Visualize Predicted Data with Rotation And FOV</string>
+    <string>Visualize Predicted Data</string>
    </property>
   </action>
  </widget>
