@@ -1044,7 +1044,7 @@ void GLWidget3D::generateTrainingData(const QString& cga_dir, const QString& out
 	resizeGL(origWidth, origHeight);
 }
 
-void GLWidget3D::generateTrainingDataWithoutAmgiousViewpoints(const QString& cga_dir, const QString& out_dir, int numSamples, int image_width, int image_height, bool grayscale, bool centering, float xrotMin, float xrotMax, float yrotMin, float yrotMax) {
+void GLWidget3D::generateTrainingDataWithoutAmgiousViewpoints(const QString& cga_dir, const QString& out_dir, int numSamples, int image_width, int image_height, bool grayscale, bool centering, int xrotMin, int xrotMax, int yrotMin, int yrotMax) {
 	if (QDir(out_dir).exists()) {
 		std::cout << "Clearning output directory..." << std::endl;
 		QDir(out_dir).removeRecursively();
@@ -1432,7 +1432,12 @@ void GLWidget3D::generateTrainingDataWithoutAmgiousViewpoints(const QString& cga
 
 }
 
-void GLWidget3D::visualizePredictedData(const QString& cga_dir, const QString& out_dir, int cameraType, float cameraDistanceBase, float cameraHeight, float xrotMin, float xrotMax, float yrotMin, float yrotMax, float fovMin, float fovMax) {
+void GLWidget3D::visualizePredictedData(const QString& cga_dir, const QString& out_dir, int cameraType, float cameraDistanceBase, float cameraHeight, int xrotMin, int xrotMax, int yrotMin, int yrotMax, int fovMin, int fovMax) {
+	int origWidth = width();
+	int origHeight = height();
+	resize(512, 512);
+	resizeGL(512, 512);
+
 	for (int i = 1; i < 30; ++i) {
 		QFile predicted_results_file(QString("prediction\\predicted_results_%1.txt").arg(i));
 		if (!predicted_results_file.exists()) continue;
@@ -1482,14 +1487,24 @@ void GLWidget3D::visualizePredictedData(const QString& cga_dir, const QString& o
 
 			// 画像IDを取得
 			int img_id;
+			int dummy;
 			QString line_imgname = in_test.readLine();
 			QStringList imgnames = line_imgname.split(" ");
-			sscanf(imgnames[0].toUtf8().constData(), "image_%06d.png", &img_id);
+			sscanf(imgnames[0].toUtf8().constData(), "%03d/image_%06d.png", &dummy, &img_id);
+
+			if (img_id == 2245) {
+				int xxx = 0;
+			}
+
+			std::vector<float> true_param = true_param_values[img_id];
 
 			// 真のカメラパラメータをセット
 			if (xrotMin != xrotMax && yrotMin != yrotMax) {
-				camera.xrot = xrotMin + (xrotMax - xrotMin) * true_param_values[img_id][0];
-				camera.yrot = yrotMin + (yrotMax - yrotMin) * true_param_values[img_id][1];
+				camera.xrot = xrotMin + (xrotMax - xrotMin) * true_param[0];
+				camera.yrot = yrotMin + (yrotMax - yrotMin) * true_param[1];
+
+				true_param.erase(true_param.begin());
+				true_param.erase(true_param.begin());
 			}
 			else {
 				camera.xrot = xrotMin;
@@ -1497,7 +1512,8 @@ void GLWidget3D::visualizePredictedData(const QString& cga_dir, const QString& o
 			}
 			camera.zrot = 0.0f;
 			if (fovMin != fovMax) {
-				camera.fovy = fovMin + true_param_values[img_id][2] * (fovMax - fovMin);
+				camera.fovy = fovMin + true_param[0] * (fovMax - fovMin);
+				true_param.erase(true_param.begin());
 			}
 			else {
 				camera.fovy = fovMin;
@@ -1515,16 +1531,6 @@ void GLWidget3D::visualizePredictedData(const QString& cga_dir, const QString& o
 			}
 			camera.updatePMatrix(width(), height());
 			
-			// カメラパラメータを削除
-			std::vector<float> true_param = true_param_values[img_id];
-			if (xrotMin != xrotMax && yrotMin != yrotMax) {
-				true_param.erase(true_param.begin());
-				true_param.erase(true_param.begin());
-			}
-			if (fovMin != fovMax) {
-				true_param.erase(true_param.begin());
-			}
-
 			// 真のパラメータをセット
 			cga.setParamValues(grammar, true_param);
 
@@ -1554,6 +1560,8 @@ void GLWidget3D::visualizePredictedData(const QString& cga_dir, const QString& o
 			if (xrotMin != xrotMax && yrotMin != yrotMax) {
 				camera.xrot = xrotMin + (xrotMax - xrotMin) * param_values[0];
 				camera.yrot = yrotMin + (yrotMax - yrotMin) * param_values[1];
+				param_values.erase(param_values.begin());
+				param_values.erase(param_values.begin());
 			}
 			else {
 				camera.xrot = xrotMin;
@@ -1561,7 +1569,8 @@ void GLWidget3D::visualizePredictedData(const QString& cga_dir, const QString& o
 			}
 			camera.zrot = 0.0f;
 			if (fovMin != fovMax) {
-				camera.fovy = fovMin + param_values[2] * (fovMax - fovMin);
+				camera.fovy = fovMin + param_values[0] * (fovMax - fovMin);
+				param_values.erase(param_values.begin());
 			}
 			cameraDistance = cameraDistanceBase / tanf(camera.fovy * 0.5 / 180.0f * M_PI);
 			if (cameraType == 0) { // street view
@@ -1575,15 +1584,6 @@ void GLWidget3D::visualizePredictedData(const QString& cga_dir, const QString& o
 				camera.pos.z = cameraDistance;
 			}
 			camera.updatePMatrix(width(), height());
-
-			// カメラパラメータを削除
-			if (xrotMin != xrotMax && yrotMin != yrotMax) {
-				param_values.erase(param_values.begin());
-				param_values.erase(param_values.begin());
-			}
-			if (fovMin != fovMax) {
-				param_values.erase(param_values.begin());
-			}
 
 			// predictdパラメータをセット
 			cga.setParamValues(grammar, param_values);
@@ -1630,6 +1630,9 @@ void GLWidget3D::visualizePredictedData(const QString& cga_dir, const QString& o
 			cv::imwrite(output_filename.toUtf8().constData(), mat3);
 		}
 	}
+
+	resize(origWidth, origHeight);
+	resizeGL(origWidth, origHeight);
 }
 
 void GLWidget3D::runMCMC(const std::string& cga_filename, const std::string& target_filename, int numIterations) {
