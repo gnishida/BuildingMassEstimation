@@ -130,8 +130,6 @@ public:
         menuTool->addAction(actionMCMCAll);
         menuTool->addSeparator();
         menuTool->addAction(actionComputeVanishingPoints);
-        menuTool->addSeparator();
-        menuTool->addAction(actionContourVectors);
         menuRendering->addAction(actionRenderingBasic);
         menuRendering->addAction(actionRenderingLine);
         menuRendering->addAction(actionRenderingContour);

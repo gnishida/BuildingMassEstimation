@@ -353,7 +353,7 @@ namespace mcmc {
 
 		// render the image
 		std::vector<boost::shared_ptr<glutils::Face> > faces;
-		cga.generateGeometry(faces);
+		cga.generateGeometry(faces, true);
 		glWidget->renderManager.removeObjects();
 		glWidget->renderManager.addFaces(faces, false);
 		glWidget->render();

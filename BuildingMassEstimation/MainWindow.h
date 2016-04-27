@@ -27,7 +27,6 @@ public slots:
 	void onMCMC();
 	void onMCMCAll();
 	void onComputeVanishingPoints();
-	void onContourVectors();
 	void onRenderingModeChanged();
 };
 

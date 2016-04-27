@@ -49,8 +49,6 @@
     <addaction name="actionMCMCAll"/>
     <addaction name="separator"/>
     <addaction name="actionComputeVanishingPoints"/>
-    <addaction name="separator"/>
-    <addaction name="actionContourVectors"/>
    </widget>
    <widget class="QMenu" name="menuRendering">
     <property name="title">

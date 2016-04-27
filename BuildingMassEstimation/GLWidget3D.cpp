@@ -363,75 +363,6 @@ std::pair<glm::vec2, glm::vec2> GLWidget3D::getRightmostVLine(const std::vector<
 	return ret_line;
 }
 
-void GLWidget3D::extractContourVectors(std::vector<std::pair<glm::vec2, glm::vec2>>& edges) {
-	QImage img = this->grabFrameBuffer();
-	cv::Mat mat = cv::Mat(img.height(), img.width(), CV_8UC4, img.bits(), img.bytesPerLine()).clone();
-	cv::cvtColor(mat, mat, CV_BGRA2GRAY);
-
-#if 0
-	cv::imwrite("contour0.png", mat);
-#endif
-
-	cv::threshold(mat, mat, 128, 255, cv::THRESH_BINARY_INV);
-	
-	std::vector<cv::Vec4i> lines;
-	cv::HoughLinesP(mat, lines, 1, CV_PI / 180, 10, 10, 10);
-
-	// HoughLinesの結果を、edgesリストにコピー
-	edges.resize(lines.size());
-	for (int i = 0; i < lines.size(); ++i) {
-		edges[i].first = glm::vec2(lines[i][0], lines[i][1]);
-		edges[i].second = glm::vec2(lines[i][2], lines[i][3]);
-	}
-
-#if 0
-	cv::Mat result(mat.size(), CV_8UC3, cv::Scalar(255, 255, 255));
-	std::cout << "contour lines (" << edges.size() << "): " << std::endl;
-	for (int i = 0; i < edges.size(); ++i) {
-		std::cout << "(" << edges[i].first.x << "," << edges[i].first.y << ") - (" << edges[i].second.x << "," << edges[i].second.y << ")" << std::endl;
-		cv::Scalar color(rand() % 250, rand() % 250, rand() % 250);
-		cv::circle(result, cv::Point(edges[i].first.x, edges[i].first.y), 6, color, -1);
-		cv::circle(result, cv::Point(edges[i].second.x, edges[i].second.y), 6, color, -1);
-		cv::line(result, cv::Point(edges[i].first.x, edges[i].first.y), cv::Point(edges[i].second.x, edges[i].second.y), color, 2);
-	}
-	std::cout << std::endl;
-	cv::imwrite("contour.png", result);
-#endif
-
-	utils::cleanEdges(edges, 20, 5.0 / 180.0 * M_PI);
-#if 0
-	cv::Mat result2(mat.size(), CV_8UC3, cv::Scalar(255, 255, 255));
-	for (int i = 0; i < edges.size(); ++i) {
-		std::cout << "(" << edges[i].first.x << "," << edges[i].first.y << ") - (" << edges[i].second.x << "," << edges[i].second.y << ")" << std::endl;
-		cv::line(result2, cv::Point(edges[i].first.x, edges[i].first.y), cv::Point(edges[i].second.x, edges[i].second.y), cv::Scalar(rand() % 250, rand() % 250, rand() % 250), 3);
-	}
-	std::cout << std::endl;
-	cv::imwrite("contour2.png", result2);
-#endif
-
-	utils::cleanContours(edges, 80, 10.0 / 180.0 * M_PI);
-#if 0
-	cv::Mat result3(mat.size(), CV_8UC3, cv::Scalar(255, 255, 255));
-	for (int i = 0; i < edges.size(); ++i) {
-		std::cout << "(" << edges[i].first.x << "," << edges[i].first.y << ") - (" << edges[i].second.x << "," << edges[i].second.y << ")" << std::endl;
-		cv::Scalar color(rand() % 250, rand() % 250, rand() % 250);
-		cv::circle(result3, cv::Point(edges[i].first.x, edges[i].first.y), 6, color, -1);
-		cv::circle(result3, cv::Point(edges[i].second.x, edges[i].second.y), 6, color, -1);
-		cv::line(result3, cv::Point(edges[i].first.x, edges[i].first.y), cv::Point(edges[i].second.x, edges[i].second.y), color, 2);
-	}
-	std::cout << std::endl;
-	cv::imwrite("contour3.png", result3);
-#endif
-
-
-
-
-
-
-}
-
-
-
 /**
  * This event handler is called when the mouse press events occur.
  */
@@ -864,7 +795,7 @@ void GLWidget3D::loadCGA(const std::string& cga_filename) {
 	// generate 3d model
 	cga.derive(grammar, true);
 	std::vector<boost::shared_ptr<glutils::Face> > faces;
-	cga.generateGeometry(faces);
+	cga.generateGeometry(faces, true);
 	renderManager.addFaces(faces, true);
 
 	renderManager.updateShadowMap(this, light_dir, light_mvpMatrix);
@@ -890,7 +821,7 @@ void GLWidget3D::loadCGA(const std::string& cga_filename) {
 * @param fovMin			min of fov
 * @param fovMax			max of fov
 */
-void GLWidget3D::generateTrainingData(const QString& cga_dir, const QString& out_dir, int numSamples, int image_width, int image_height, bool grayscale, bool centering, int cameraType, float cameraDistanceBase, float cameraHeight, int xrotMin, int xrotMax, int yrotMin, int yrotMax, int fovMin, int fovMax) {
+void GLWidget3D::generateTrainingData(const QString& cga_dir, const QString& out_dir, int numSamples, int image_width, int image_height, bool grayscale, bool centering3D, bool centering, int cameraType, float cameraDistanceBase, float cameraHeight, int xrotMin, int xrotMax, int yrotMin, int yrotMax, int fovMin, int fovMax, bool modifyImage, int lineWidthMin, int lineWidthMax, bool noise, float noiseMax) {
 	if (QDir(out_dir).exists()) {
 		std::cout << "Clearning output directory..." << std::endl;
 		QDir(out_dir).removeRecursively();
@@ -971,7 +902,7 @@ void GLWidget3D::generateTrainingData(const QString& cga_dir, const QString& out
 						// generate 3d model
 						cga.derive(grammar, true);
 						std::vector<boost::shared_ptr<glutils::Face> > faces;
-						cga.generateGeometry(faces);
+						cga.generateGeometry(faces, centering3D);
 						renderManager.addFaces(faces, true);
 
 						// render 2d image
@@ -984,18 +915,54 @@ void GLWidget3D::generateTrainingData(const QString& cga_dir, const QString& out
 							if (!moveCenter(mat)) continue;
 						}
 
+						// extract contour vectors
+						std::vector<std::pair<glm::vec2, glm::vec2>> contour;
+						utils::extractEdges(mat, contour);
+
+						// add noise
+						if (noise) {
+							for (int ci = 0; ci < contour.size(); ++ci) {
+								contour[ci].first.x += utils::genRand(-width() * noiseMax * 0.01f, width() * noiseMax * 0.01f);
+								contour[ci].first.y += utils::genRand(-height() * noiseMax * 0.01f, height() * noiseMax * 0.01f);
+								contour[ci].second.x += utils::genRand(-width() * noiseMax * 0.01f, width() * noiseMax * 0.01f);
+								contour[ci].second.y += utils::genRand(-height() * noiseMax * 0.01f, height() * noiseMax * 0.01f);
+							}
+						}
+
 						// 画像を縮小
-						cv::resize(mat, mat, cv::Size(256, 256));
-						cv::threshold(mat, mat, 250, 255, CV_THRESH_BINARY);
-						if (image_width != 256 || image_height != 256) {
-							cv::resize(mat, mat, cv::Size(image_width, image_height));
-							cv::threshold(mat, mat, 250, 255, CV_THRESH_BINARY);
+						glm::vec2 scale((float)image_width / width(), (float)image_height / height());
+						for (int ci = 0; ci < contour.size(); ++ci) {
+							contour[ci].first.x *= scale.x;
+							contour[ci].first.y *= scale.y;
+							contour[ci].second.x *= scale.x;
+							contour[ci].second.y *= scale.y;
+						}
+						//cv::resize(mat, mat, cv::Size(256, 256), 0, 0, cv::INTER_LINEAR);
+						//cv::threshold(mat, mat, 250, 255, CV_THRESH_BINARY);
+						//if (image_width != 256 || image_height != 256) {
+							//cv::resize(mat, mat, cv::Size(image_width, image_height), 0, 0, cv::INTER_LINEAR);
+							//cv::threshold(mat, mat, 250, 255, CV_THRESH_BINARY);
+						//}
+						
+						// generate the rendered image
+						cv::Scalar color;
+						if (grayscale) {
+							mat = cv::Mat(image_height, image_width, CV_8U, cv::Scalar(255));
+							color = cv::Scalar(0);
+						}
+						else {
+							mat = cv::Mat(image_height, image_width, CV_8UC3, cv::Scalar(255, 255, 255));
+							color = cv::Scalar(0, 0, 0);
+						}
+						for (int ci = 0; ci < contour.size(); ++ci) {
+							int lineWidth = utils::genRand(lineWidthMin, lineWidthMax + 1);
+							cv::line(mat, cv::Point(contour[ci].first.x, contour[ci].first.y), cv::Point(contour[ci].second.x, contour[ci].second.y), color, lineWidth, cv::LINE_AA);
 						}
 
 						// grayscale
-						if (grayscale) {
+						/*if (grayscale) {
 							cv::cvtColor(mat, mat, CV_BGR2GRAY);
-						}
+						}*/
 
 						// create the subfolder
 						int subfolder_idx = count / 100000;
@@ -1118,15 +1085,17 @@ void GLWidget3D::generateTrainingDataWithoutAmgiousViewpoints(const QString& cga
 					// generate 3d model
 					cga.derive(grammar, true);
 					std::vector<boost::shared_ptr<glutils::Face> > faces;
-					cga.generateGeometry(faces);
+					cga.generateGeometry(faces, true);
 					renderManager.addFaces(faces, true);
 
 					// render 2d image
 					render();
+					QImage img = this->grabFrameBuffer();
+					cv::Mat mat = cv::Mat(img.height(), img.width(), CV_8UC4, img.bits(), img.bytesPerLine()).clone();
 
 					// extract contour edges
 					std::vector<std::pair<glm::vec2, glm::vec2>> contour;
-					extractContourVectors(contour);
+					utils::extractEdges(mat, contour);
 
 					viewpoints.back().back().examples.push_back(ViewpointExample(param_values, contour));
 				}
@@ -1213,7 +1182,7 @@ void GLWidget3D::generateTrainingDataWithoutAmgiousViewpoints(const QString& cga
 										// generate 3d model
 										cga.derive(grammars[i], true);
 										std::vector<boost::shared_ptr<glutils::Face> > faces;
-										cga.generateGeometry(faces);
+										cga.generateGeometry(faces, true);
 										renderManager.addFaces(faces, true);
 
 										// render 2d image
@@ -1261,7 +1230,7 @@ void GLWidget3D::generateTrainingDataWithoutAmgiousViewpoints(const QString& cga
 										// generate 3d model
 										cga.derive(grammars[i2], true);
 										std::vector<boost::shared_ptr<glutils::Face> > faces;
-										cga.generateGeometry(faces);
+										cga.generateGeometry(faces, true);
 										renderManager.addFaces(faces, true);
 
 										// render 2d image
@@ -1390,7 +1359,7 @@ void GLWidget3D::generateTrainingDataWithoutAmgiousViewpoints(const QString& cga
 				// generate 3d model
 				cga.derive(grammars[i], true);
 				std::vector<boost::shared_ptr<glutils::Face> > faces;
-				cga.generateGeometry(faces);
+				cga.generateGeometry(faces, true);
 				renderManager.addFaces(faces, true);
 
 				// render 2d image
@@ -1432,7 +1401,7 @@ void GLWidget3D::generateTrainingDataWithoutAmgiousViewpoints(const QString& cga
 
 }
 
-void GLWidget3D::visualizePredictedData(const QString& cga_dir, const QString& out_dir, int cameraType, float cameraDistanceBase, float cameraHeight, int xrotMin, int xrotMax, int yrotMin, int yrotMax, int fovMin, int fovMax) {
+void GLWidget3D::visualizePredictedData(const QString& cga_dir, const QString& out_dir, bool centering3D, int cameraType, float cameraDistanceBase, float cameraHeight, int xrotMin, int xrotMax, int yrotMin, int yrotMax, int fovMin, int fovMax) {
 	int origWidth = width();
 	int origHeight = height();
 	resize(512, 512);
@@ -1542,7 +1511,7 @@ void GLWidget3D::visualizePredictedData(const QString& cga_dir, const QString& o
 			renderManager.removeObjects();
 			cga.derive(grammar, true);
 			std::vector<boost::shared_ptr<glutils::Face> > faces;
-			cga.generateGeometry(faces);
+			cga.generateGeometry(faces, centering3D);
 			renderManager.addFaces(faces, true);
 
 			// render 2d image
@@ -1596,7 +1565,7 @@ void GLWidget3D::visualizePredictedData(const QString& cga_dir, const QString& o
 			renderManager.removeObjects();
 			cga.derive(grammar, true);
 			std::vector<boost::shared_ptr<glutils::Face> > faces2;
-			cga.generateGeometry(faces2);
+			cga.generateGeometry(faces2, centering3D);
 			renderManager.addFaces(faces2, true);
 
 			// render 2d image

@@ -25,7 +25,6 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
 	connect(ui.actionMCMC, SIGNAL(triggered()), this, SLOT(onMCMC()));
 	connect(ui.actionMCMCAll, SIGNAL(triggered()), this, SLOT(onMCMCAll()));
 	connect(ui.actionComputeVanishingPoints, SIGNAL(triggered()), this, SLOT(onComputeVanishingPoints()));
-	connect(ui.actionContourVectors, SIGNAL(triggered()), this, SLOT(onContourVectors()));
 	connect(ui.actionRenderingBasic, SIGNAL(triggered()), this, SLOT(onRenderingModeChanged()));
 	connect(ui.actionRenderingLine, SIGNAL(triggered()), this, SLOT(onRenderingModeChanged()));
 	connect(ui.actionRenderingContour, SIGNAL(triggered()), this, SLOT(onRenderingModeChanged()));
@@ -74,14 +73,9 @@ void MainWindow::onGenerateTrainingData() {
 		int numSamples = dlg.ui.lineEditNumSamples->text().toInt();
 		int imageWidth = dlg.ui.lineEditImageWidth->text().toInt();
 		int imageHeight = dlg.ui.lineEditImageHeight->text().toInt();
-		bool grayscale = false;
-		if (dlg.ui.checkBoxGrayscale->isChecked()) {
-			grayscale = true;
-		}
-		bool centering = false;
-		if (dlg.ui.checkBoxCentering->isChecked()) {
-			centering = true;
-		}
+		bool grayscale = dlg.ui.checkBoxGrayscale->isChecked();
+		bool centering3D = dlg.ui.checkBoxCentering3D->isChecked();
+		bool centering = dlg.ui.checkBoxCentering->isChecked();
 		int cameraType = 0;
 		if (dlg.ui.radioButtonCameraTypeAerialView->isChecked()) {
 			cameraType = 1;
@@ -93,8 +87,13 @@ void MainWindow::onGenerateTrainingData() {
 		int yrotMax = dlg.ui.lineEditYrotMax->text().toInt();
 		int fovMin = dlg.ui.lineEditFovMin->text().toInt();
 		int fovMax = dlg.ui.lineEditFovMax->text().toInt();
+		bool modifyImage = dlg.ui.checkBoxModifyImage->isChecked();
+		int lineWidthMin = dlg.ui.lineEditLineWidthMin->text().toInt();
+		int lineWidthMax = dlg.ui.lineEditLineWidthMax->text().toInt();
+		bool noise = dlg.ui.checkBoxNoise->isChecked();
+		float noiseMax = dlg.ui.lineEditNoiseMax->text().toFloat();
 
-		glWidget3D->generateTrainingData(dlg.ui.lineEditCGADirectory->text(), dlg.ui.lineEditOutputDirectory->text(), numSamples, imageWidth, imageHeight, grayscale, centering, cameraType, cameraDistanceBase, 0.0f, xrotMin, xrotMax, yrotMin, yrotMax, fovMin, fovMax);
+		glWidget3D->generateTrainingData(dlg.ui.lineEditCGADirectory->text(), dlg.ui.lineEditOutputDirectory->text(), numSamples, imageWidth, imageHeight, grayscale, centering3D, centering, cameraType, cameraDistanceBase, 0.0f, xrotMin, xrotMax, yrotMin, yrotMax, fovMin, fovMax, modifyImage, lineWidthMin, lineWidthMax, noise, noiseMax);
 	}
 }
 
@@ -124,6 +123,10 @@ void MainWindow::onGenerateTrainingDataWithoutAmgiousViewpoints() {
 void MainWindow::onVisualizePredictedData() {
 	VisualizePredictedDataDialog dlg;
 	if (dlg.exec() && !dlg.ui.lineEditCGADirectory->text().isEmpty() && !dlg.ui.lineEditDataDirectory->text().isEmpty()) {
+		bool centering3D = false;
+		if (dlg.ui.checkBoxCentering3D->isChecked()) {
+			centering3D = true;
+		}
 		int cameraType = 0;
 		if (dlg.ui.radioButtonCameraTypeAerialView->isChecked()) {
 			cameraType = 1;
@@ -136,7 +139,7 @@ void MainWindow::onVisualizePredictedData() {
 		int fovMin = dlg.ui.lineEditFovMin->text().toInt();
 		int fovMax = dlg.ui.lineEditFovMax->text().toInt();
 
-		glWidget3D->visualizePredictedData(dlg.ui.lineEditCGADirectory->text(), dlg.ui.lineEditDataDirectory->text(), cameraType, cameraDistanceBase, 0, xrotMin, xrotMax, yrotMin, yrotMax, fovMin, fovMax);
+		glWidget3D->visualizePredictedData(dlg.ui.lineEditCGADirectory->text(), dlg.ui.lineEditDataDirectory->text(), centering3D, cameraType, cameraDistanceBase, 0, xrotMin, xrotMax, yrotMin, yrotMax, fovMin, fovMax);
 	}
 }
 
@@ -156,11 +159,6 @@ void MainWindow::onMCMCAll() {
 
 void MainWindow::onComputeVanishingPoints() {
 	glWidget3D->extractCameraParameters();
-}
-
-void MainWindow::onContourVectors() {
-	std::vector<std::pair<glm::vec2, glm::vec2>> edges;
-	glWidget3D->extractContourVectors(edges);
 }
 
 void MainWindow::onRenderingModeChanged() {

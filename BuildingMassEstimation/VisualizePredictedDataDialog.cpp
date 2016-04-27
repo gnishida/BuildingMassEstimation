@@ -8,6 +8,7 @@ VisualizePredictedDataDialog::VisualizePredictedDataDialog(QWidget *parent)
 
 	ui.lineEditCGADirectory->setText("..\\cga\\mass_20160329\\");
 	ui.lineEditDataDirectory->setText("C:\\Anaconda\\caffe\\data\\contour_regression\\contour\\");
+	ui.checkBoxCentering3D->setChecked(true);
 	ui.radioButtonCameraTypeStreetView->setChecked(true);
 	ui.lineEditCameraDistance->setText("25");
 	ui.lineEditXrotMin->setText("0");

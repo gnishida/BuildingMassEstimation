@@ -13,6 +13,7 @@
 #include <QtWidgets/QAction>
 #include <QtWidgets/QApplication>
 #include <QtWidgets/QButtonGroup>
+#include <QtWidgets/QCheckBox>
 #include <QtWidgets/QDialog>
 #include <QtWidgets/QHeaderView>
 #include <QtWidgets/QLabel>
@@ -50,12 +51,13 @@ public:
     QLabel *label_14;
     QLineEdit *lineEditCameraDistance;
     QLabel *label_7;
+    QCheckBox *checkBoxCentering3D;
 
     void setupUi(QDialog *VisualizePredictedDataDialog)
     {
         if (VisualizePredictedDataDialog->objectName().isEmpty())
             VisualizePredictedDataDialog->setObjectName(QStringLiteral("VisualizePredictedDataDialog"));
-        VisualizePredictedDataDialog->resize(538, 262);
+        VisualizePredictedDataDialog->resize(538, 324);
         label = new QLabel(VisualizePredictedDataDialog);
         label->setObjectName(QStringLiteral("label"));
         label->setGeometry(QRect(10, 41, 121, 16));
@@ -76,69 +78,72 @@ public:
         lineEditCGADirectory->setGeometry(QRect(130, 10, 361, 20));
         pushButtonOK = new QPushButton(VisualizePredictedDataDialog);
         pushButtonOK->setObjectName(QStringLiteral("pushButtonOK"));
-        pushButtonOK->setGeometry(QRect(330, 220, 91, 31));
+        pushButtonOK->setGeometry(QRect(330, 260, 91, 31));
         pushButtonCancel = new QPushButton(VisualizePredictedDataDialog);
         pushButtonCancel->setObjectName(QStringLiteral("pushButtonCancel"));
-        pushButtonCancel->setGeometry(QRect(430, 220, 91, 31));
+        pushButtonCancel->setGeometry(QRect(430, 260, 91, 31));
         label_3 = new QLabel(VisualizePredictedDataDialog);
         label_3->setObjectName(QStringLiteral("label_3"));
-        label_3->setGeometry(QRect(80, 130, 41, 20));
+        label_3->setGeometry(QRect(80, 170, 41, 20));
         label_3->setAlignment(Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter);
         lineEditXrotMin = new QLineEdit(VisualizePredictedDataDialog);
         lineEditXrotMin->setObjectName(QStringLiteral("lineEditXrotMin"));
-        lineEditXrotMin->setGeometry(QRect(130, 130, 61, 20));
+        lineEditXrotMin->setGeometry(QRect(130, 170, 61, 20));
         label_4 = new QLabel(VisualizePredictedDataDialog);
         label_4->setObjectName(QStringLiteral("label_4"));
-        label_4->setGeometry(QRect(80, 160, 41, 20));
+        label_4->setGeometry(QRect(80, 200, 41, 20));
         label_4->setAlignment(Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter);
         lineEditYrotMin = new QLineEdit(VisualizePredictedDataDialog);
         lineEditYrotMin->setObjectName(QStringLiteral("lineEditYrotMin"));
-        lineEditYrotMin->setGeometry(QRect(130, 160, 61, 20));
+        lineEditYrotMin->setGeometry(QRect(130, 200, 61, 20));
         lineEditXrotMax = new QLineEdit(VisualizePredictedDataDialog);
         lineEditXrotMax->setObjectName(QStringLiteral("lineEditXrotMax"));
-        lineEditXrotMax->setGeometry(QRect(220, 130, 61, 20));
+        lineEditXrotMax->setGeometry(QRect(220, 170, 61, 20));
         lineEditYrotMax = new QLineEdit(VisualizePredictedDataDialog);
         lineEditYrotMax->setObjectName(QStringLiteral("lineEditYrotMax"));
-        lineEditYrotMax->setGeometry(QRect(220, 160, 61, 20));
+        lineEditYrotMax->setGeometry(QRect(220, 200, 61, 20));
         label_10 = new QLabel(VisualizePredictedDataDialog);
         label_10->setObjectName(QStringLiteral("label_10"));
-        label_10->setGeometry(QRect(50, 190, 71, 16));
+        label_10->setGeometry(QRect(50, 230, 71, 16));
         label_10->setAlignment(Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter);
         lineEditFovMin = new QLineEdit(VisualizePredictedDataDialog);
         lineEditFovMin->setObjectName(QStringLiteral("lineEditFovMin"));
-        lineEditFovMin->setGeometry(QRect(130, 190, 61, 20));
+        lineEditFovMin->setGeometry(QRect(130, 230, 61, 20));
         lineEditFovMax = new QLineEdit(VisualizePredictedDataDialog);
         lineEditFovMax->setObjectName(QStringLiteral("lineEditFovMax"));
-        lineEditFovMax->setGeometry(QRect(220, 190, 61, 20));
+        lineEditFovMax->setGeometry(QRect(220, 230, 61, 20));
         label_11 = new QLabel(VisualizePredictedDataDialog);
         label_11->setObjectName(QStringLiteral("label_11"));
-        label_11->setGeometry(QRect(193, 190, 16, 20));
+        label_11->setGeometry(QRect(193, 230, 16, 20));
         label_11->setAlignment(Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter);
         radioButtonCameraTypeAerialView = new QRadioButton(VisualizePredictedDataDialog);
         radioButtonCameraTypeAerialView->setObjectName(QStringLiteral("radioButtonCameraTypeAerialView"));
-        radioButtonCameraTypeAerialView->setGeometry(QRect(230, 70, 82, 17));
+        radioButtonCameraTypeAerialView->setGeometry(QRect(230, 110, 82, 17));
         radioButtonCameraTypeStreetView = new QRadioButton(VisualizePredictedDataDialog);
         radioButtonCameraTypeStreetView->setObjectName(QStringLiteral("radioButtonCameraTypeStreetView"));
-        radioButtonCameraTypeStreetView->setGeometry(QRect(130, 70, 82, 17));
+        radioButtonCameraTypeStreetView->setGeometry(QRect(130, 110, 82, 17));
         label_12 = new QLabel(VisualizePredictedDataDialog);
         label_12->setObjectName(QStringLiteral("label_12"));
-        label_12->setGeometry(QRect(50, 70, 71, 16));
+        label_12->setGeometry(QRect(50, 110, 71, 16));
         label_12->setAlignment(Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter);
         label_13 = new QLabel(VisualizePredictedDataDialog);
         label_13->setObjectName(QStringLiteral("label_13"));
-        label_13->setGeometry(QRect(193, 130, 16, 20));
+        label_13->setGeometry(QRect(193, 170, 16, 20));
         label_13->setAlignment(Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter);
         label_14 = new QLabel(VisualizePredictedDataDialog);
         label_14->setObjectName(QStringLiteral("label_14"));
-        label_14->setGeometry(QRect(193, 160, 16, 20));
+        label_14->setGeometry(QRect(193, 200, 16, 20));
         label_14->setAlignment(Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter);
         lineEditCameraDistance = new QLineEdit(VisualizePredictedDataDialog);
         lineEditCameraDistance->setObjectName(QStringLiteral("lineEditCameraDistance"));
-        lineEditCameraDistance->setGeometry(QRect(130, 100, 61, 20));
+        lineEditCameraDistance->setGeometry(QRect(130, 140, 61, 20));
         label_7 = new QLabel(VisualizePredictedDataDialog);
         label_7->setObjectName(QStringLiteral("label_7"));
-        label_7->setGeometry(QRect(30, 100, 91, 20));
+        label_7->setGeometry(QRect(30, 140, 91, 20));
         label_7->setAlignment(Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter);
+        checkBoxCentering3D = new QCheckBox(VisualizePredictedDataDialog);
+        checkBoxCentering3D->setObjectName(QStringLiteral("checkBoxCentering3D"));
+        checkBoxCentering3D->setGeometry(QRect(130, 80, 91, 17));
         QWidget::setTabOrder(lineEditCGADirectory, pushButtonCGADirectory);
         QWidget::setTabOrder(pushButtonCGADirectory, lineEditDataDirectory);
         QWidget::setTabOrder(lineEditDataDirectory, pushButtonDataDirectory);
@@ -178,6 +183,7 @@ public:
         label_13->setText(QApplication::translate("VisualizePredictedDataDialog", "~", 0));
         label_14->setText(QApplication::translate("VisualizePredictedDataDialog", "~", 0));
         label_7->setText(QApplication::translate("VisualizePredictedDataDialog", "Camera distance:", 0));
+        checkBoxCentering3D->setText(QApplication::translate("VisualizePredictedDataDialog", "3D Centering", 0));
     } // retranslateUi
 
 };
