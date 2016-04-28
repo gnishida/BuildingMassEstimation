@@ -70,6 +70,7 @@ public:
     QLabel *label_15;
     QLineEdit *lineEditNoiseMax;
     QLabel *label_16;
+    QCheckBox *checkBoxMeanGeneration;
 
     void setupUi(QDialog *TrainingDataGenerationDialog)
     {
@@ -219,6 +220,9 @@ public:
         label_16->setObjectName(QStringLiteral("label_16"));
         label_16->setGeometry(QRect(206, 80, 21, 20));
         label_16->setAlignment(Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter);
+        checkBoxMeanGeneration = new QCheckBox(TrainingDataGenerationDialog);
+        checkBoxMeanGeneration->setObjectName(QStringLiteral("checkBoxMeanGeneration"));
+        checkBoxMeanGeneration->setGeometry(QRect(340, 130, 141, 17));
         QWidget::setTabOrder(lineEditCGADirectory, pushButtonCGADirectory);
         QWidget::setTabOrder(pushButtonCGADirectory, lineEditOutputDirectory);
         QWidget::setTabOrder(lineEditOutputDirectory, pushButtonOutputDirectory);
@@ -228,7 +232,8 @@ public:
         QWidget::setTabOrder(lineEditImageHeight, checkBoxGrayscale);
         QWidget::setTabOrder(checkBoxGrayscale, checkBoxCentering3D);
         QWidget::setTabOrder(checkBoxCentering3D, checkBoxCentering);
-        QWidget::setTabOrder(checkBoxCentering, radioButtonCameraTypeStreetView);
+        QWidget::setTabOrder(checkBoxCentering, checkBoxMeanGeneration);
+        QWidget::setTabOrder(checkBoxMeanGeneration, radioButtonCameraTypeStreetView);
         QWidget::setTabOrder(radioButtonCameraTypeStreetView, radioButtonCameraTypeAerialView);
         QWidget::setTabOrder(radioButtonCameraTypeAerialView, lineEditCameraDistance);
         QWidget::setTabOrder(lineEditCameraDistance, lineEditXrotMin);
@@ -239,8 +244,10 @@ public:
         QWidget::setTabOrder(lineEditFovMin, lineEditFovMax);
         QWidget::setTabOrder(lineEditFovMax, checkBoxModifyImage);
         QWidget::setTabOrder(checkBoxModifyImage, lineEditLineWidthMin);
-        QWidget::setTabOrder(lineEditLineWidthMin, checkBoxNoise);
-        QWidget::setTabOrder(checkBoxNoise, pushButtonOK);
+        QWidget::setTabOrder(lineEditLineWidthMin, lineEditLineWidthMax);
+        QWidget::setTabOrder(lineEditLineWidthMax, checkBoxNoise);
+        QWidget::setTabOrder(checkBoxNoise, lineEditNoiseMax);
+        QWidget::setTabOrder(lineEditNoiseMax, pushButtonOK);
         QWidget::setTabOrder(pushButtonOK, pushButtonCancel);
 
         retranslateUi(TrainingDataGenerationDialog);
@@ -279,6 +286,7 @@ public:
         checkBoxModifyImage->setText(QApplication::translate("TrainingDataGenerationDialog", "Modify rendered image", 0));
         label_15->setText(QApplication::translate("TrainingDataGenerationDialog", "~", 0));
         label_16->setText(QApplication::translate("TrainingDataGenerationDialog", "%", 0));
+        checkBoxMeanGeneration->setText(QApplication::translate("TrainingDataGenerationDialog", "Mean Generation", 0));
     } // retranslateUi
 
 };

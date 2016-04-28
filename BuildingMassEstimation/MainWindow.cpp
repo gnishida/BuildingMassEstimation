@@ -76,6 +76,7 @@ void MainWindow::onGenerateTrainingData() {
 		bool grayscale = dlg.ui.checkBoxGrayscale->isChecked();
 		bool centering3D = dlg.ui.checkBoxCentering3D->isChecked();
 		bool centering = dlg.ui.checkBoxCentering->isChecked();
+		bool meanGeneration = dlg.ui.checkBoxMeanGeneration->isChecked();
 		int cameraType = 0;
 		if (dlg.ui.radioButtonCameraTypeAerialView->isChecked()) {
 			cameraType = 1;
@@ -93,7 +94,7 @@ void MainWindow::onGenerateTrainingData() {
 		bool noise = dlg.ui.checkBoxNoise->isChecked();
 		float noiseMax = dlg.ui.lineEditNoiseMax->text().toFloat();
 
-		glWidget3D->generateTrainingData(dlg.ui.lineEditCGADirectory->text(), dlg.ui.lineEditOutputDirectory->text(), numSamples, imageWidth, imageHeight, grayscale, centering3D, centering, cameraType, cameraDistanceBase, 0.0f, xrotMin, xrotMax, yrotMin, yrotMax, fovMin, fovMax, modifyImage, lineWidthMin, lineWidthMax, noise, noiseMax);
+		glWidget3D->generateTrainingData(dlg.ui.lineEditCGADirectory->text(), dlg.ui.lineEditOutputDirectory->text(), numSamples, imageWidth, imageHeight, grayscale, centering3D, centering, meanGeneration, cameraType, cameraDistanceBase, 0.0f, xrotMin, xrotMax, yrotMin, yrotMax, fovMin, fovMax, modifyImage, lineWidthMin, lineWidthMax, noise, noiseMax);
 	}
 }
 

@@ -17,6 +17,7 @@ TrainingDataGenerationDialog::TrainingDataGenerationDialog(QWidget *parent)
 	ui.checkBoxGrayscale->setChecked(true);
 	ui.checkBoxCentering3D->setChecked(true);
 	ui.checkBoxCentering->setChecked(true);
+	ui.checkBoxMeanGeneration->setChecked(true);
 	ui.radioButtonCameraTypeStreetView->setChecked(false);
 	ui.radioButtonCameraTypeAerialView->setChecked(true);
 	ui.lineEditCameraDistance->setText("25");

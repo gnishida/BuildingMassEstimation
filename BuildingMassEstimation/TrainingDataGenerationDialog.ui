@@ -569,6 +569,19 @@
     </property>
    </widget>
   </widget>
+  <widget class="QCheckBox" name="checkBoxMeanGeneration">
+   <property name="geometry">
+    <rect>
+     <x>340</x>
+     <y>130</y>
+     <width>141</width>
+     <height>17</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Mean Generation</string>
+   </property>
+  </widget>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <tabstops>
@@ -582,6 +595,7 @@
   <tabstop>checkBoxGrayscale</tabstop>
   <tabstop>checkBoxCentering3D</tabstop>
   <tabstop>checkBoxCentering</tabstop>
+  <tabstop>checkBoxMeanGeneration</tabstop>
   <tabstop>radioButtonCameraTypeStreetView</tabstop>
   <tabstop>radioButtonCameraTypeAerialView</tabstop>
   <tabstop>lineEditCameraDistance</tabstop>
@@ -593,7 +607,9 @@
   <tabstop>lineEditFovMax</tabstop>
   <tabstop>checkBoxModifyImage</tabstop>
   <tabstop>lineEditLineWidthMin</tabstop>
+  <tabstop>lineEditLineWidthMax</tabstop>
   <tabstop>checkBoxNoise</tabstop>
+  <tabstop>lineEditNoiseMax</tabstop>
   <tabstop>pushButtonOK</tabstop>
   <tabstop>pushButtonCancel</tabstop>
  </tabstops>
