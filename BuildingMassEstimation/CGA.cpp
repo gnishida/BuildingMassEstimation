@@ -90,18 +90,20 @@ void CGA::generateGeometry(std::vector<boost::shared_ptr<glutils::Face> >& faces
 		shapes[i]->generateGeometry(faces, 1.0f);
 	}
 
-	glutils::BoundingBox bbox;
-	for (int i = 0; i < faces.size(); ++i) {
-		for (int j = 0; j < faces[i]->vertices.size(); ++j) {
-			bbox.addPoint(faces[i]->vertices[j].position);
+	if (center) {
+		glutils::BoundingBox bbox;
+		for (int i = 0; i < faces.size(); ++i) {
+			for (int j = 0; j < faces[i]->vertices.size(); ++j) {
+				bbox.addPoint(faces[i]->vertices[j].position);
+			}
 		}
-	}
 
-	glm::vec3 centroid = bbox.center();
+		glm::vec3 centroid = bbox.center();
 
-	for (int i = 0; i < faces.size(); ++i) {
-		for (int j = 0; j < faces[i]->vertices.size(); ++j) {
-			faces[i]->vertices[j].position -= centroid;
+		for (int i = 0; i < faces.size(); ++i) {
+			for (int j = 0; j < faces[i]->vertices.size(); ++j) {
+				faces[i]->vertices[j].position -= centroid;
+			}
 		}
 	}
 }
