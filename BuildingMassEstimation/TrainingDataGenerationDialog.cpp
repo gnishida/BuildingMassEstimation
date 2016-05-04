@@ -69,6 +69,7 @@ void TrainingDataGenerationDialog::onModifyImageClicked() {
 	ui.lineEditLineWidthMin->setEnabled(ui.checkBoxModifyImage->isChecked());
 	ui.lineEditLineWidthMax->setEnabled(ui.checkBoxModifyImage->isChecked());
 	ui.checkBoxNoise->setEnabled(ui.checkBoxModifyImage->isChecked());
+	ui.lineEditNoiseMax->setEnabled(ui.checkBoxModifyImage->isChecked());
 }
 
 void TrainingDataGenerationDialog::onNoiseClicked() {

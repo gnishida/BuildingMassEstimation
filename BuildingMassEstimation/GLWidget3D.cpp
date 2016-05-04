@@ -945,42 +945,54 @@ void GLWidget3D::generateTrainingData(const QString& cga_dir, const QString& out
 							if (!moveCenter(mat)) continue;
 						}
 
-						// extract contour vectors
-						std::vector<std::pair<glm::vec2, glm::vec2>> contour;
-						utils::extractEdges(mat, contour);
+						if (modifyImage) {
+							// extract contour vectors
+							std::vector<std::pair<glm::vec2, glm::vec2>> contour;
+							utils::extractEdges(mat, contour);
 
-						// add noise
-						if (noise) {
+							// add noise
+							if (noise) {
+								for (int ci = 0; ci < contour.size(); ++ci) {
+									contour[ci].first.x += utils::genRand(-width() * noiseMax * 0.01f, width() * noiseMax * 0.01f);
+									contour[ci].first.y += utils::genRand(-height() * noiseMax * 0.01f, height() * noiseMax * 0.01f);
+									contour[ci].second.x += utils::genRand(-width() * noiseMax * 0.01f, width() * noiseMax * 0.01f);
+									contour[ci].second.y += utils::genRand(-height() * noiseMax * 0.01f, height() * noiseMax * 0.01f);
+								}
+							}
+
+							// 画像を縮小
+							glm::vec2 scale((float)image_width / width(), (float)image_height / height());
 							for (int ci = 0; ci < contour.size(); ++ci) {
-								contour[ci].first.x += utils::genRand(-width() * noiseMax * 0.01f, width() * noiseMax * 0.01f);
-								contour[ci].first.y += utils::genRand(-height() * noiseMax * 0.01f, height() * noiseMax * 0.01f);
-								contour[ci].second.x += utils::genRand(-width() * noiseMax * 0.01f, width() * noiseMax * 0.01f);
-								contour[ci].second.y += utils::genRand(-height() * noiseMax * 0.01f, height() * noiseMax * 0.01f);
+								contour[ci].first.x *= scale.x;
+								contour[ci].first.y *= scale.y;
+								contour[ci].second.x *= scale.x;
+								contour[ci].second.y *= scale.y;
+							}
+
+							// generate the rendered image
+							cv::Scalar color;
+							if (grayscale) {
+								mat = cv::Mat(image_height, image_width, CV_8U, cv::Scalar(255));
+								color = cv::Scalar(0);
+							}
+							else {
+								mat = cv::Mat(image_height, image_width, CV_8UC3, cv::Scalar(255, 255, 255));
+								color = cv::Scalar(0, 0, 0);
+							}
+							for (int ci = 0; ci < contour.size(); ++ci) {
+								int lineWidth = utils::genRand(lineWidthMin, lineWidthMax + 1);
+								cv::line(mat, cv::Point(contour[ci].first.x, contour[ci].first.y), cv::Point(contour[ci].second.x, contour[ci].second.y), color, lineWidth, cv::LINE_AA);
 							}
 						}
-
-						// 画像を縮小
-						glm::vec2 scale((float)image_width / width(), (float)image_height / height());
-						for (int ci = 0; ci < contour.size(); ++ci) {
-							contour[ci].first.x *= scale.x;
-							contour[ci].first.y *= scale.y;
-							contour[ci].second.x *= scale.x;
-							contour[ci].second.y *= scale.y;
-						}
-						
-						// generate the rendered image
-						cv::Scalar color;
-						if (grayscale) {
-							mat = cv::Mat(image_height, image_width, CV_8U, cv::Scalar(255));
-							color = cv::Scalar(0);
-						}
 						else {
-							mat = cv::Mat(image_height, image_width, CV_8UC3, cv::Scalar(255, 255, 255));
-							color = cv::Scalar(0, 0, 0);
-						}
-						for (int ci = 0; ci < contour.size(); ++ci) {
-							int lineWidth = utils::genRand(lineWidthMin, lineWidthMax + 1);
-							cv::line(mat, cv::Point(contour[ci].first.x, contour[ci].first.y), cv::Point(contour[ci].second.x, contour[ci].second.y), color, lineWidth, cv::LINE_AA);
+							// 画像を縮小
+							cv::resize(mat, mat, cv::Size(image_width, image_height));
+							cv::threshold(mat, mat, 250, 255, CV_THRESH_BINARY);
+
+							// generate the rendered image
+							if (grayscale) {
+								cv::cvtColor(mat, mat, cv::COLOR_BGR2GRAY);
+							}
 						}
 
 						// create the subfolder
