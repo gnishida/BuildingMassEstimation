@@ -821,7 +821,7 @@ void GLWidget3D::loadCGA(const std::string& cga_filename) {
 * @param fovMin			min of fov
 * @param fovMax			max of fov
 */
-void GLWidget3D::generateTrainingData(const QString& cga_dir, const QString& out_dir, int numSamples, int image_width, int image_height, bool grayscale, bool centering3D, bool centering, bool meanGeneration, int cameraType, float cameraDistanceBase, float cameraHeight, int xrotMin, int xrotMax, int yrotMin, int yrotMax, int fovMin, int fovMax, bool modifyImage, int lineWidthMin, int lineWidthMax, bool noise, float noiseMax) {
+void GLWidget3D::generateTrainingData(const QString& cga_dir, const QString& out_dir, int numSamples, int image_width, int image_height, bool grayscale, bool centering3D, bool centering, bool centeringNoise, float centeringNoiseMax, bool meanGeneration, int cameraType, float cameraDistanceBase, float cameraHeight, int xrotMin, int xrotMax, int yrotMin, int yrotMax, int fovMin, int fovMax, bool modifyImage, int lineWidthMin, int lineWidthMax, bool edgeNoise, float edgeNoiseMax) {
 	if (QDir(out_dir).exists()) {
 		std::cout << "Clearning output directory..." << std::endl;
 		QDir(out_dir).removeRecursively();
@@ -837,8 +837,10 @@ void GLWidget3D::generateTrainingData(const QString& cga_dir, const QString& out
 	std::cout << "  image height: " << image_height << std::endl;
 	std::cout << "  grayscale: " << (grayscale ? "true" : "false") << std::endl;
 	std::cout << "  centering 3D: " << (centering3D ? "true" : "false") << std::endl;
-	std::cout << "  centering: " << (centering ? "true" : "false") << std::endl;
 	std::cout << "  mean generation: " << (meanGeneration ? "true" : "false") << std::endl;
+	std::cout << "  centering: " << (centering ? "true" : "false") << std::endl;
+	std::cout << "  centering noise: " << (centeringNoise ? "true" : "false") << std::endl;
+	std::cout << "  centering noise max: " << centeringNoiseMax << std::endl;
 	std::cout << "  camera type: " << (cameraType == 0 ? "street view" : "aerial view") << std::endl;
 	std::cout << "  camera distance base: " << cameraDistanceBase << std::endl;
 	std::cout << "  camera height: " << cameraHeight << std::endl;
@@ -847,8 +849,8 @@ void GLWidget3D::generateTrainingData(const QString& cga_dir, const QString& out
 	std::cout << "  FOV: " << fovMin << " - " << fovMax << std::endl;
 	std::cout << "  modify image: " << (modifyImage ? "true" : "false") << std::endl;
 	std::cout << "  line width: " << lineWidthMin << " - " << lineWidthMax << std::endl;
-	std::cout << "  noise: " << (noise ? "true" : "false") << std::endl;
-	std::cout << "  noise max: " << noiseMax << std::endl;
+	std::cout << "  edge noise: " << (edgeNoise ? "true" : "false") << std::endl;
+	std::cout << "  edge noise max: " << edgeNoiseMax << std::endl;
 	std::cout << std::endl;
 
 	srand(0);
@@ -943,6 +945,12 @@ void GLWidget3D::generateTrainingData(const QString& cga_dir, const QString& out
 						// translate the image
 						if (centering) {
 							if (!moveCenter(mat)) continue;
+
+							if (centeringNoise) {
+								int shift_x = round(utils::genRand(-width() * centeringNoiseMax * 0.01f, width() * centeringNoiseMax * 0.01f));
+								int shift_y = round(utils::genRand(-height() * centeringNoiseMax * 0.01f, height() * centeringNoiseMax * 0.01f));
+								translateImage(mat, mat, shift_x, shift_y);
+							}
 						}
 
 						if (modifyImage) {
@@ -951,12 +959,12 @@ void GLWidget3D::generateTrainingData(const QString& cga_dir, const QString& out
 							utils::extractEdges(mat, contour);
 
 							// add noise
-							if (noise) {
+							if (edgeNoise) {
 								for (int ci = 0; ci < contour.size(); ++ci) {
-									contour[ci].first.x += utils::genRand(-width() * noiseMax * 0.01f, width() * noiseMax * 0.01f);
-									contour[ci].first.y += utils::genRand(-height() * noiseMax * 0.01f, height() * noiseMax * 0.01f);
-									contour[ci].second.x += utils::genRand(-width() * noiseMax * 0.01f, width() * noiseMax * 0.01f);
-									contour[ci].second.y += utils::genRand(-height() * noiseMax * 0.01f, height() * noiseMax * 0.01f);
+									contour[ci].first.x += round(utils::genRand(-width() * edgeNoiseMax * 0.01f, width() * edgeNoiseMax * 0.01f));
+									contour[ci].first.y += round(utils::genRand(-height() * edgeNoiseMax * 0.01f, height() * edgeNoiseMax * 0.01f));
+									contour[ci].second.x += round(utils::genRand(-width() * edgeNoiseMax * 0.01f, width() * edgeNoiseMax * 0.01f));
+									contour[ci].second.y += round(utils::genRand(-height() * edgeNoiseMax * 0.01f, height() * edgeNoiseMax * 0.01f));
 								}
 							}
 
@@ -1765,6 +1773,21 @@ bool GLWidget3D::moveCenter(cv::Mat& img) {
 	}
 
 	return true;
+}
+
+void GLWidget3D::translateImage(cv::Mat source, cv::Mat& target, int shift_x, int shift_y) {
+	target = cv::Mat(source.size(), source.type(), cv::Scalar(255, 255, 255, 255));
+	
+	for (int r = 0; r < target.rows; ++r) {
+		for (int c = 0; c < target.cols; ++c) {
+			if (c - shift_x < 0 || c - shift_x >= source.cols) continue;
+			else if (r - shift_y < 0 || r - shift_y >= source.rows) continue;
+			else {
+				cv::Vec4b color = source.at<cv::Vec4b>(r - shift_y, c - shift_x);
+				target.at<cv::Vec4b>(r, c) = color;
+			}
+		}
+	}
 }
 
 /**

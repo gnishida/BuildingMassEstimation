@@ -6,8 +6,9 @@ TrainingDataGenerationDialog::TrainingDataGenerationDialog(QWidget *parent)
 {
 	ui.setupUi(this);
 
+	connect(ui.checkBoxCenteringNoise, SIGNAL(clicked()), this, SLOT(onCenteringNoiseClicked()));
 	connect(ui.checkBoxModifyImage, SIGNAL(clicked()), this, SLOT(onModifyImageClicked()));
-	connect(ui.checkBoxNoise, SIGNAL(clicked()), this, SLOT(onNoiseClicked()));
+	connect(ui.checkBoxEdgeNoise, SIGNAL(clicked()), this, SLOT(onEdgeNoiseClicked()));
 
 	ui.lineEditCGADirectory->setText("..\\cga\\mass_20160329\\");
 	ui.lineEditOutputDirectory->setText("C:\\Anaconda\\caffe\\data\\contour_regression\\contour\\");
@@ -16,22 +17,24 @@ TrainingDataGenerationDialog::TrainingDataGenerationDialog(QWidget *parent)
 	ui.lineEditImageHeight->setText("128");
 	ui.checkBoxGrayscale->setChecked(true);
 	ui.checkBoxCentering3D->setChecked(true);
+	ui.checkBoxMeanGeneration->setChecked(false);
 	ui.checkBoxCentering->setChecked(true);
-	ui.checkBoxMeanGeneration->setChecked(true);
+	ui.checkBoxCenteringNoise->setChecked(false);
+	ui.lineEditCenteringNoiseMax->setText("1.0");
 	ui.radioButtonCameraTypeStreetView->setChecked(false);
 	ui.radioButtonCameraTypeAerialView->setChecked(true);
 	ui.lineEditCameraDistance->setText("25");
-	ui.lineEditXrotMin->setText("0");
-	ui.lineEditXrotMax->setText("40");
-	ui.lineEditYrotMin->setText("15");
-	ui.lineEditYrotMax->setText("75");
-	ui.lineEditFovMin->setText("10");
-	ui.lineEditFovMax->setText("60");
+	ui.lineEditXrotMin->setText("30");
+	ui.lineEditXrotMax->setText("60");
+	ui.lineEditYrotMin->setText("30");
+	ui.lineEditYrotMax->setText("60");
+	ui.lineEditFovMin->setText("20");
+	ui.lineEditFovMax->setText("30");
 	ui.checkBoxModifyImage->setChecked(true);
 	ui.lineEditLineWidthMin->setText("1");
 	ui.lineEditLineWidthMax->setText("1");
-	ui.checkBoxNoise->setChecked(true);
-	ui.lineEditNoiseMax->setText("1.0");
+	ui.checkBoxEdgeNoise->setChecked(true);
+	ui.lineEditEdgeNoiseMax->setText("1.0");
 
 	connect(ui.pushButtonCGADirectory, SIGNAL(clicked()), this, SLOT(onCGADirectory()));
 	connect(ui.pushButtonOutputDirectory, SIGNAL(clicked()), this, SLOT(onOutputDirectory()));
@@ -65,13 +68,17 @@ void TrainingDataGenerationDialog::onCancel() {
 	reject();
 }
 
+void TrainingDataGenerationDialog::onCenteringNoiseClicked() {
+	ui.lineEditCenteringNoiseMax->setEnabled(ui.checkBoxCenteringNoise->isChecked());
+}
+
 void TrainingDataGenerationDialog::onModifyImageClicked() {
 	ui.lineEditLineWidthMin->setEnabled(ui.checkBoxModifyImage->isChecked());
 	ui.lineEditLineWidthMax->setEnabled(ui.checkBoxModifyImage->isChecked());
-	ui.checkBoxNoise->setEnabled(ui.checkBoxModifyImage->isChecked());
-	ui.lineEditNoiseMax->setEnabled(ui.checkBoxModifyImage->isChecked());
+	ui.checkBoxEdgeNoise->setEnabled(ui.checkBoxModifyImage->isChecked());
+	ui.lineEditEdgeNoiseMax->setEnabled(ui.checkBoxModifyImage->isChecked());
 }
 
-void TrainingDataGenerationDialog::onNoiseClicked() {
-	ui.lineEditNoiseMax->setEnabled(ui.checkBoxNoise->isChecked());
+void TrainingDataGenerationDialog::onEdgeNoiseClicked() {
+	ui.lineEditEdgeNoiseMax->setEnabled(ui.checkBoxEdgeNoise->isChecked());
 }

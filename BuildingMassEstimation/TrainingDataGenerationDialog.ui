@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>537</width>
-    <height>473</height>
+    <height>502</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -180,7 +180,7 @@
    <property name="geometry">
     <rect>
      <x>60</x>
-     <y>220</y>
+     <y>250</y>
      <width>71</width>
      <height>16</height>
     </rect>
@@ -196,7 +196,7 @@
    <property name="geometry">
     <rect>
      <x>140</x>
-     <y>220</y>
+     <y>250</y>
      <width>61</width>
      <height>20</height>
     </rect>
@@ -206,7 +206,7 @@
    <property name="geometry">
     <rect>
      <x>230</x>
-     <y>220</y>
+     <y>250</y>
      <width>61</width>
      <height>20</height>
     </rect>
@@ -216,7 +216,7 @@
    <property name="geometry">
     <rect>
      <x>60</x>
-     <y>250</y>
+     <y>280</y>
      <width>71</width>
      <height>16</height>
     </rect>
@@ -232,7 +232,7 @@
    <property name="geometry">
     <rect>
      <x>140</x>
-     <y>250</y>
+     <y>280</y>
      <width>61</width>
      <height>20</height>
     </rect>
@@ -242,7 +242,7 @@
    <property name="geometry">
     <rect>
      <x>230</x>
-     <y>250</y>
+     <y>280</y>
      <width>61</width>
      <height>20</height>
     </rect>
@@ -252,7 +252,7 @@
    <property name="geometry">
     <rect>
      <x>330</x>
-     <y>430</y>
+     <y>460</y>
      <width>91</width>
      <height>31</height>
     </rect>
@@ -265,7 +265,7 @@
    <property name="geometry">
     <rect>
      <x>430</x>
-     <y>430</y>
+     <y>460</y>
      <width>91</width>
      <height>31</height>
     </rect>
@@ -278,7 +278,7 @@
    <property name="geometry">
     <rect>
      <x>60</x>
-     <y>280</y>
+     <y>310</y>
      <width>71</width>
      <height>16</height>
     </rect>
@@ -294,7 +294,7 @@
    <property name="geometry">
     <rect>
      <x>140</x>
-     <y>280</y>
+     <y>310</y>
      <width>61</width>
      <height>20</height>
     </rect>
@@ -304,7 +304,7 @@
    <property name="geometry">
     <rect>
      <x>230</x>
-     <y>280</y>
+     <y>310</y>
      <width>61</width>
      <height>20</height>
     </rect>
@@ -314,7 +314,7 @@
    <property name="geometry">
     <rect>
      <x>203</x>
-     <y>280</y>
+     <y>310</y>
      <width>16</width>
      <height>20</height>
     </rect>
@@ -330,7 +330,7 @@
    <property name="geometry">
     <rect>
      <x>60</x>
-     <y>160</y>
+     <y>190</y>
      <width>71</width>
      <height>16</height>
     </rect>
@@ -346,7 +346,7 @@
    <property name="geometry">
     <rect>
      <x>140</x>
-     <y>160</y>
+     <y>190</y>
      <width>82</width>
      <height>17</height>
     </rect>
@@ -359,7 +359,7 @@
    <property name="geometry">
     <rect>
      <x>240</x>
-     <y>160</y>
+     <y>190</y>
      <width>82</width>
      <height>17</height>
     </rect>
@@ -371,8 +371,8 @@
   <widget class="QCheckBox" name="checkBoxCentering">
    <property name="geometry">
     <rect>
-     <x>240</x>
-     <y>130</y>
+     <x>140</x>
+     <y>160</y>
      <width>70</width>
      <height>17</height>
     </rect>
@@ -382,22 +382,6 @@
    </property>
   </widget>
   <widget class="QLabel" name="label_13">
-   <property name="geometry">
-    <rect>
-     <x>203</x>
-     <y>220</y>
-     <width>16</width>
-     <height>20</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>~</string>
-   </property>
-   <property name="alignment">
-    <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-   </property>
-  </widget>
-  <widget class="QLabel" name="label_14">
    <property name="geometry">
     <rect>
      <x>203</x>
@@ -413,11 +397,27 @@
     <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
    </property>
   </widget>
+  <widget class="QLabel" name="label_14">
+   <property name="geometry">
+    <rect>
+     <x>203</x>
+     <y>280</y>
+     <width>16</width>
+     <height>20</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>~</string>
+   </property>
+   <property name="alignment">
+    <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+   </property>
+  </widget>
   <widget class="QLabel" name="label_7">
    <property name="geometry">
     <rect>
      <x>40</x>
-     <y>190</y>
+     <y>220</y>
      <width>91</width>
      <height>20</height>
     </rect>
@@ -433,7 +433,7 @@
    <property name="geometry">
     <rect>
      <x>140</x>
-     <y>190</y>
+     <y>220</y>
      <width>61</width>
      <height>20</height>
     </rect>
@@ -456,7 +456,7 @@
    <property name="geometry">
     <rect>
      <x>40</x>
-     <y>310</y>
+     <y>340</y>
      <width>471</width>
      <height>111</height>
     </rect>
@@ -490,7 +490,7 @@
      </rect>
     </property>
    </widget>
-   <widget class="QCheckBox" name="checkBoxNoise">
+   <widget class="QCheckBox" name="checkBoxEdgeNoise">
     <property name="geometry">
      <rect>
       <x>40</x>
@@ -500,7 +500,7 @@
      </rect>
     </property>
     <property name="text">
-     <string>Add noise</string>
+     <string>Edge noise</string>
     </property>
    </widget>
    <widget class="QCheckBox" name="checkBoxModifyImage">
@@ -542,7 +542,7 @@
      <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
     </property>
    </widget>
-   <widget class="QLineEdit" name="lineEditNoiseMax">
+   <widget class="QLineEdit" name="lineEditEdgeNoiseMax">
     <property name="geometry">
      <rect>
       <x>140</x>
@@ -582,6 +582,45 @@
     <string>Mean Generation</string>
    </property>
   </widget>
+  <widget class="QCheckBox" name="checkBoxCenteringNoise">
+   <property name="geometry">
+    <rect>
+     <x>230</x>
+     <y>160</y>
+     <width>70</width>
+     <height>17</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Add noise</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="label_17">
+   <property name="geometry">
+    <rect>
+     <x>385</x>
+     <y>160</y>
+     <width>20</width>
+     <height>20</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>%</string>
+   </property>
+   <property name="alignment">
+    <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+   </property>
+  </widget>
+  <widget class="QLineEdit" name="lineEditCenteringNoiseMax">
+   <property name="geometry">
+    <rect>
+     <x>320</x>
+     <y>160</y>
+     <width>61</width>
+     <height>20</height>
+    </rect>
+   </property>
+  </widget>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <tabstops>
@@ -594,8 +633,10 @@
   <tabstop>lineEditImageHeight</tabstop>
   <tabstop>checkBoxGrayscale</tabstop>
   <tabstop>checkBoxCentering3D</tabstop>
-  <tabstop>checkBoxCentering</tabstop>
   <tabstop>checkBoxMeanGeneration</tabstop>
+  <tabstop>checkBoxCentering</tabstop>
+  <tabstop>checkBoxCenteringNoise</tabstop>
+  <tabstop>lineEditCenteringNoiseMax</tabstop>
   <tabstop>radioButtonCameraTypeStreetView</tabstop>
   <tabstop>radioButtonCameraTypeAerialView</tabstop>
   <tabstop>lineEditCameraDistance</tabstop>
@@ -608,8 +649,8 @@
   <tabstop>checkBoxModifyImage</tabstop>
   <tabstop>lineEditLineWidthMin</tabstop>
   <tabstop>lineEditLineWidthMax</tabstop>
-  <tabstop>checkBoxNoise</tabstop>
-  <tabstop>lineEditNoiseMax</tabstop>
+  <tabstop>checkBoxEdgeNoise</tabstop>
+  <tabstop>lineEditEdgeNoiseMax</tabstop>
   <tabstop>pushButtonOK</tabstop>
   <tabstop>pushButtonCancel</tabstop>
  </tabstops>

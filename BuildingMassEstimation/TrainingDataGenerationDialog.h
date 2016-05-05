@@ -17,8 +17,9 @@ public slots:
 	void onOutputDirectory();
 	void onOK();
 	void onCancel();
+	void onCenteringNoiseClicked();
 	void onModifyImageClicked();
-	void onNoiseClicked();
+	void onEdgeNoiseClicked();
 
 public:
 	Ui::TrainingDataGenerationDialog ui;
