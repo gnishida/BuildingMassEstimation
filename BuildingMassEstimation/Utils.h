@@ -15,6 +15,8 @@ namespace utils {
 	float genRand();
 	float genRand(float v);
 	float genRand(float a, float b);
+	int genIntRand(int v);
+	int genIntRand(int a, int b);
 	bool segmentSegmentIntersect(const glm::vec2& a, const glm::vec2& b, const glm::vec2& c, const glm::vec2& d, float *tab, float *tcd, bool segmentOnly, glm::vec2& intPoint);
 
 	void extractEdges(const cv::Mat& img, std::vector<std::pair<glm::vec2, glm::vec2>>& edges);

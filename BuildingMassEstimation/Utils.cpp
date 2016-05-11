@@ -41,6 +41,22 @@ namespace utils {
 	}
 
 	/**
+	* Generate a random integer number in [0, a].
+	* Note: a is included!
+	*/
+	int genIntRand(int a) {
+		return genRand(a + 1);
+	}
+
+	/**
+	* Generate a random integer number in [a, b].
+	* Note: b is included!
+	*/
+	int genIntRand(int a, int b) {
+		return genRand(b + 1 - a) + a;
+	}
+
+	/**
 	* Computes the intersection between two line segments on the XY plane.
 	* Segments must intersect within their extents for the intersection to be valid. z coordinate is ignored.
 	*

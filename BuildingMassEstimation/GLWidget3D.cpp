@@ -988,7 +988,7 @@ void GLWidget3D::generateTrainingData(const QString& cga_dir, const QString& out
 								color = cv::Scalar(0, 0, 0);
 							}
 							for (int ci = 0; ci < contour.size(); ++ci) {
-								int lineWidth = utils::genRand(lineWidthMin, lineWidthMax + 1);
+								int lineWidth = utils::genIntRand(lineWidthMin, lineWidthMax);
 								cv::line(mat, cv::Point(contour[ci].first.x, contour[ci].first.y), cv::Point(contour[ci].second.x, contour[ci].second.y), color, lineWidth, cv::LINE_AA);
 							}
 						}
