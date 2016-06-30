@@ -15,58 +15,18 @@
 
 class MainWindow;
 
-class ViewpointExample {
-public:
-	std::vector<float> param_values;
-	std::vector<std::pair<glm::vec2, glm::vec2>> contour;
-	bool ambiguous;
-
-public:
-	ViewpointExample(const std::vector<float>& param_values, std::vector<std::pair<glm::vec2, glm::vec2>>& contour);
-
-	bool isSimilar(const ViewpointExample& other);
-};
-
-class Viewpoint {
-public:
-	int snippet_id;
-	Camera camera;
-	bool ambiguous;
-	std::vector<ViewpointExample> examples;
-
-public:
-	Viewpoint(int snippet_id, const Camera& camera);
-
-	//bool isSimilar(const Viewpoint& other);
-};
-
 class GLWidget3D : public QGLWidget {
 public:
 	GLWidget3D(MainWindow *parent = 0);
 
 	void updateStatusBar();
-	void loadImage(const std::string& filename);
-	void detectEdges(const cv::Mat& img);
-	void saveContour(const std::string& filename);
-	void extractCameraParameters();
-	cv::Mat extractCameraIntrinsicParameters(std::vector<glm::vec2>& vp);
-	cv::Mat extractCameraExtrinsicParameters(std::vector<glm::vec2>& vp, const cv::Mat& K);
-	std::vector<glm::vec2> computeVanishingPoints(const std::vector<std::pair<glm::vec2, glm::vec2> >& v_lines);
-	std::vector<std::pair<glm::vec2, glm::vec2> > getLeftmostHLines(const std::vector<std::pair<glm::vec2, glm::vec2> >& lines);
-	std::vector<std::pair<glm::vec2, glm::vec2> > getRightmostHLines(const std::vector<std::pair<glm::vec2, glm::vec2> >& lines);
-	std::pair<glm::vec2, glm::vec2> getLeftmostVLine(const std::vector<std::pair<glm::vec2, glm::vec2> >& lines);
-	std::pair<glm::vec2, glm::vec2> getRightmostVLine(const std::vector<std::pair<glm::vec2, glm::vec2> >& lines);
 	void drawScene();
 	void render();
 	void loadCGA(const std::string& cga_filename);
 	void generateTrainingData(const QString& cga_dir, const QString& out_dir, int numSamples, int image_width, int image_height, bool grayscale, bool centering3D, bool centering, bool centeringNoise, float centeringNoiseMax, bool meanGeneration, int cameraType, float cameraDistanceBase, float cameraHeight, int xrotMin, int xrotMax, int yrotMin, int yrotMax, int fovMin, int fovMax, bool modifyImage, int lineWidthMin, int lineWidthMax, bool edgeNoise, float edgeNoiseMax);
-	void generateTrainingDataWithoutAmgiousViewpoints(const QString& cga_dir, const QString& out_dir, int numSamples, int image_width, int image_height, bool grayscale, bool centering, int xrotMin, int xrotMax, int yrotMin, int yrotMax);
 	void visualizePredictedData(const QString& cga_dir, const QString& out_dir, bool centering3D, int cameraType, float cameraDistanceBase, float cameraHeight, int xrotMin, int xrotMax, int yrotMin, int yrotMax, int fovMin, int fovMax);
-	void runMCMC(const std::string& cga_filename, const std::string& target_filename, int numIterations);
-	void runMCMCAll(const std::string& cga_dir, int numIterations);
 	bool moveCenter(cv::Mat& img);
 	void translateImage(cv::Mat source, cv::Mat& target, int shift_x, int shift_y);
-	void fixCamera();
 
 	void keyPressEvent(QKeyEvent* e);
 	void keyReleaseEvent(QKeyEvent* e);

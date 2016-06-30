@@ -28,11 +28,6 @@
      <string>File</string>
     </property>
     <addaction name="actionLoadCGA"/>
-    <addaction name="actionLoadImage"/>
-    <addaction name="actionSaveImage"/>
-    <addaction name="actionSaveContour"/>
-    <addaction name="separator"/>
-    <addaction name="actionResetCamera"/>
     <addaction name="separator"/>
     <addaction name="actionExit"/>
    </widget>
@@ -41,14 +36,7 @@
      <string>Tool</string>
     </property>
     <addaction name="actionGenerateTrainingData"/>
-    <addaction name="actionGenerateTrainingDataWithoutAmbiguousViewpoints"/>
-    <addaction name="separator"/>
     <addaction name="actionVisualizePredictedData"/>
-    <addaction name="separator"/>
-    <addaction name="actionMCMC"/>
-    <addaction name="actionMCMCAll"/>
-    <addaction name="separator"/>
-    <addaction name="actionComputeVanishingPoints"/>
    </widget>
    <widget class="QMenu" name="menuRendering">
     <property name="title">

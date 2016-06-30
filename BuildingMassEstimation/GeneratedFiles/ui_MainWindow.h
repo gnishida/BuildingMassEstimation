@@ -1,7 +1,7 @@
 /********************************************************************************
 ** Form generated from reading UI file 'MainWindow.ui'
 **
-** Created by: Qt User Interface Compiler version 5.5.1
+** Created by: Qt User Interface Compiler version 5.6.0
 **
 ** WARNING! All changes made in this file will be lost when recompiling UI file!
 ********************************************************************************/
@@ -114,22 +114,10 @@ public:
         menuBar->addAction(menuTool->menuAction());
         menuBar->addAction(menuRendering->menuAction());
         menuFile->addAction(actionLoadCGA);
-        menuFile->addAction(actionLoadImage);
-        menuFile->addAction(actionSaveImage);
-        menuFile->addAction(actionSaveContour);
-        menuFile->addSeparator();
-        menuFile->addAction(actionResetCamera);
         menuFile->addSeparator();
         menuFile->addAction(actionExit);
         menuTool->addAction(actionGenerateTrainingData);
-        menuTool->addAction(actionGenerateTrainingDataWithoutAmbiguousViewpoints);
-        menuTool->addSeparator();
         menuTool->addAction(actionVisualizePredictedData);
-        menuTool->addSeparator();
-        menuTool->addAction(actionMCMC);
-        menuTool->addAction(actionMCMCAll);
-        menuTool->addSeparator();
-        menuTool->addAction(actionComputeVanishingPoints);
         menuRendering->addAction(actionRenderingBasic);
         menuRendering->addAction(actionRenderingLine);
         menuRendering->addAction(actionRenderingContour);

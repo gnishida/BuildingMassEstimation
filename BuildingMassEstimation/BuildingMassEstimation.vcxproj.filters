@@ -71,9 +71,6 @@
     <ClCompile Include="ShadowMapping.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="MCMC.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="UShapeTaper.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -242,15 +239,6 @@
     <ClCompile Include="Asset.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="MCMCConfigDialog.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="GeneratedFiles\Debug\moc_MCMCConfigDialog.cpp">
-      <Filter>Generated Files\Debug</Filter>
-    </ClCompile>
-    <ClCompile Include="GeneratedFiles\Release\moc_MCMCConfigDialog.cpp">
-      <Filter>Generated Files\Release</Filter>
-    </ClCompile>
     <ClCompile Include="GeneratedFiles\Debug\moc_TrainingDataGenerationDialog.cpp">
       <Filter>Generated Files\Debug</Filter>
     </ClCompile>
@@ -279,12 +267,6 @@
     </CustomBuild>
     <CustomBuild Include="MainWindow.qrc">
       <Filter>Resource Files</Filter>
-    </CustomBuild>
-    <CustomBuild Include="MCMCConfigDialog.h">
-      <Filter>Header Files</Filter>
-    </CustomBuild>
-    <CustomBuild Include="MCMCConfigDialog.ui">
-      <Filter>Form Files</Filter>
     </CustomBuild>
     <CustomBuild Include="TrainingDataGenerationDialog.ui">
       <Filter>Form Files</Filter>
@@ -325,9 +307,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Camera.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="MCMC.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Asset.h">
@@ -494,9 +473,6 @@
     </ClInclude>
     <ClInclude Include="UShapeTaper.h">
       <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="GeneratedFiles\ui_MCMCConfigDialog.h">
-      <Filter>Generated Files</Filter>
     </ClInclude>
     <ClInclude Include="GeneratedFiles\ui_TrainingDataGenerationDialog.h">
       <Filter>Generated Files</Filter>

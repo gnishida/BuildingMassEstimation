@@ -10,8 +10,8 @@ TrainingDataGenerationDialog::TrainingDataGenerationDialog(QWidget *parent)
 	connect(ui.checkBoxModifyImage, SIGNAL(clicked()), this, SLOT(onModifyImageClicked()));
 	connect(ui.checkBoxEdgeNoise, SIGNAL(clicked()), this, SLOT(onEdgeNoiseClicked()));
 
-	ui.lineEditCGADirectory->setText("..\\cga\\mass_20160329\\");
-	ui.lineEditOutputDirectory->setText("C:\\Anaconda\\caffe\\data\\contour_regression\\contour\\");
+	ui.lineEditCGADirectory->setText("../cga/mass");
+	ui.lineEditOutputDirectory->setText("C:/Anaconda/caffe/contour_regression/data/images");
 	ui.lineEditNumSamples->setText("100");
 	ui.lineEditImageWidth->setText("128");
 	ui.lineEditImageHeight->setText("128");
@@ -24,11 +24,11 @@ TrainingDataGenerationDialog::TrainingDataGenerationDialog(QWidget *parent)
 	ui.radioButtonCameraTypeStreetView->setChecked(false);
 	ui.radioButtonCameraTypeAerialView->setChecked(true);
 	ui.lineEditCameraDistance->setText("25");
-	ui.lineEditXrotMin->setText("30");
-	ui.lineEditXrotMax->setText("60");
-	ui.lineEditYrotMin->setText("30");
-	ui.lineEditYrotMax->setText("60");
-	ui.lineEditFovMin->setText("20");
+	ui.lineEditXrotMin->setText("50");
+	ui.lineEditXrotMax->setText("70");
+	ui.lineEditYrotMin->setText("20");
+	ui.lineEditYrotMax->setText("70");
+	ui.lineEditFovMin->setText("30");
 	ui.lineEditFovMax->setText("30");
 	ui.checkBoxModifyImage->setChecked(true);
 	ui.lineEditLineWidthMin->setText("1");

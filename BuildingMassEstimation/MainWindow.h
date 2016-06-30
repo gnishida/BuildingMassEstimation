@@ -17,16 +17,8 @@ public:
 
 public slots:
 	void onLoadCGA();
-	void onLoadImage();
-	void onSaveImage();
-	void onSaveContour();
-	void onResetCamera();
 	void onGenerateTrainingData();
-	void onGenerateTrainingDataWithoutAmgiousViewpoints();
 	void onVisualizePredictedData();
-	void onMCMC();
-	void onMCMCAll();
-	void onComputeVanishingPoints();
 	void onRenderingModeChanged();
 };
 
